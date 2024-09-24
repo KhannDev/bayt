@@ -7,11 +7,11 @@ export class EmailService {
   private transporter: Transporter;
   constructor() {
     this.transporter = createTransport({
-      host: 'email-smtp.ap-south-1.amazonaws.com',
-      port: 465,
+      host: configuration().smtp.SMTP_HOST,
+      port: configuration().smtp.SMTP_PORT,
       auth: {
-        user: 'AKIAXO4KKOIQAFU3NC2F',
-        pass: 'BP9/TdrAx1TsOfBR7JCVf2IYXhp9IQKRMZ91F24/Orf8',
+        user: configuration().smtp.SMTP_EMAIL,
+        pass: configuration().smtp.SMTP_PASSWORD,
       },
     });
   }
