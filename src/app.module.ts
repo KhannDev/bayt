@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { MongooseModule } from '@nestjs/mongoose';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
 
 import { PartnerModule } from './partner/partner.module';
@@ -23,8 +23,10 @@ import { HashingService } from './utils/hashing/hashing';
     }),
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
+      inject: [ConfigService],
       useFactory: async () => ({
         uri: configuration().databaseURI,
+        // tlsCAFile: './global-bundle.pem',
       }),
     }),
     AuthModule,
