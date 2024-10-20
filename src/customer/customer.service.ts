@@ -1,4 +1,9 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { CreateCustomerDto, UpdateCustomerDto } from './dto/customer.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { HashingService } from 'src/utils/hashing/hashing';
@@ -14,9 +19,8 @@ export class CustomerService {
     private emailOtpService: EmailOtpService,
   ) {}
 
-  async create(createCustomerDto: CreateCustomerDto): Promise<Customer> {
+  async initiateCustomerCreation(createCustomerDto: CreateCustomerDto) {
     // Check if email already exists
-
     const existingEmail = await this.customerModel.findOne({
       email: createCustomerDto.email,
     });
@@ -28,7 +32,6 @@ export class CustomerService {
     const existingMobile = await this.customerModel.findOne({
       mobile: createCustomerDto.mobileNumber,
     });
-    console.log('Existing Mobile', existingMobile);
     if (existingMobile) {
       throw new HttpException(
         'Mobile number already exists',
@@ -36,22 +39,13 @@ export class CustomerService {
       );
     }
 
-    // Hash the password
-    const hashedPassword = await this.hashingService.toHash(
-      createCustomerDto.password,
-    );
+    // Send OTP to the customer's email (initiate verification process)
+    await this.emailOtpService.sendOtp({ email: createCustomerDto.email });
 
-    // Create the customer object with hashed password
-    const createdCustomer = new this.customerModel({
-      ...createCustomerDto,
-      password: hashedPassword,
-    });
-
-    // Send OTP to the customer's email
-    this.emailOtpService.sendOtp({ email: createCustomerDto.email });
-
-    // Save and return the created customer
-    return createdCustomer.save();
+    return {
+      message:
+        'OTP sent to email. Complete OTP verification to finish registration.',
+    };
   }
 
   async findAll(): Promise<Customer[]> {
@@ -79,5 +73,21 @@ export class CustomerService {
   async findCustomerWithEmail(email: string) {
     const customer = await this.customerModel.findOne({ email });
     return customer;
+  }
+
+  async validateCustomer(email: any) {
+    try {
+      const customer = await this.customerModel.findOne({
+        email,
+      }); // Replace with actual DB query
+      if (!customer) {
+        console.log('empty');
+        throw new HttpException('Customer Not Found', HttpStatus.NOT_FOUND);
+      }
+      return customer;
+    } catch (e) {
+      console.log(e.message);
+      throw new HttpException('No Customer ', HttpStatus.NOT_FOUND);
+    }
   }
 }

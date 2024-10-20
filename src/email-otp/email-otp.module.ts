@@ -7,6 +7,7 @@ import { EmailOtpService } from './email-otp.service';
 import { EmailOtp, EmailOtpSchema } from './schema/email-otp.schema';
 import { Customer, CustomerSchema } from 'src/customer/schema/customer.schema';
 import { Partner, PartnerSchema } from 'src/partner/schema/partner.schema';
+import { HashingService } from 'src/utils/hashing/hashing';
 
 @Module({
   imports: [
@@ -17,7 +18,12 @@ import { Partner, PartnerSchema } from 'src/partner/schema/partner.schema';
     ]),
   ],
   controllers: [EmailOtpController],
-  providers: [EmailOtpService, EmailService, IdGeneratorService],
+  providers: [
+    EmailOtpService,
+    EmailService,
+    IdGeneratorService,
+    HashingService,
+  ],
   exports: [EmailOtpService],
 })
 export class EmailOtpModule {}

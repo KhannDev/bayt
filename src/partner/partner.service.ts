@@ -1,4 +1,10 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  UnauthorizedException,
+  UseGuards,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Partner } from './schema/partner.schema';
@@ -7,6 +13,7 @@ import { AwsS3Service } from 'src/utils/aws/aws.service';
 import { CreatePartnerDto } from './dto/partner.dto';
 import { HashingService } from 'src/utils/hashing/hashing';
 import { EmailOtpService } from 'src/email-otp/email-otp.service';
+import { CustomerAuthGuard } from 'src/common/useguards/customer.useguard';
 
 @Injectable()
 export class PartnerService {
@@ -48,7 +55,23 @@ export class PartnerService {
   }
 
   // Get all partners
+
   async getAllPartners(): Promise<Partner[]> {
     return this.partnerModel.find().exec();
+  }
+
+  async validatePartner(email: any) {
+    // Implement logic to validate customer based on payload data
+    // For example, check the customer ID in the payload and fetch from DB
+
+    try {
+      const partner = await this.partnerModel.findOne({ email }); // Replace with actual DB query
+      if (!partner)
+        throw new HttpException('Partner Not Found', HttpStatus.NOT_FOUND);
+      return partner;
+    } catch (e) {
+      console.log(e.message);
+      throw new HttpException('No Partner ', HttpStatus.UNAUTHORIZED);
+    }
   }
 }

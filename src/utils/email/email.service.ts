@@ -41,7 +41,7 @@ export class EmailService {
     };
     try {
       const res = await this.transporter.sendMail(message);
-      console.log(res);
+      console.log('Email result', res);
     } catch (error) {
       console.log('SMTP ERROR: ', error);
       throw new HttpException(

@@ -12,12 +12,15 @@ import {
   CustomerDocument,
 } from 'src/customer/schema/customer.schema';
 import { Partner, PartnerDocument } from 'src/partner/schema/partner.schema';
+import { HashingService } from 'src/utils/hashing/hashing';
+import { CreateCustomerDto } from 'src/customer/dto/customer.dto';
 
 @Injectable()
 export class EmailOtpService {
   constructor(
     private readonly emailservice: EmailService,
     private readonly idgenerator: IdGeneratorService,
+    private hashingService: HashingService,
 
     @InjectModel(EmailOtp.name)
     private readonly emailOtpModel: Model<EmailOtpDocument>,
@@ -36,6 +39,8 @@ export class EmailOtpService {
     const createdUser: any = await this.emailOtpModel.findOne({
       email: data.email,
     });
+
+    console.log('Email OTP', createdUser);
 
     // If otp is not created for the user
 
@@ -79,26 +84,47 @@ export class EmailOtpService {
    * @Body email and otp
    */
 
-  async verifyOtp(data: VerifyOtpDto) {
-    const createdUser: any = await this.emailOtpModel.findOne({
+  async verifyOtpAndCreateCustomer(data: CreateCustomerDto): Promise<Customer> {
+    const otpRecord: any = await this.emailOtpModel.findOne({
       email: data.email,
     });
 
-    // Check if the otp has expired
-    //Check if the otp is correct
+    if (!otpRecord) {
+      throw new HttpException(
+        'OTP not found or already verified',
+        HttpStatus.NOT_FOUND,
+      );
+    }
 
-    if (createdUser && createdUser?.otp === data.otp) {
-      if (moment(createdUser?.createdAt).isBefore(moment().add(3, 'hours'))) {
-        await this.emailOtpModel.findOneAndDelete({ email: data.email });
-        const updatedCustomer = await this.customerModel.findOneAndUpdate(
-          { email: data.email }, // Find by email
-          { $set: { isAllowed: true } }, // Update the fields
-          { new: true }, // Return the updated document
-        );
-      } else {
-        throw new HttpException('Otp has Expired', HttpStatus.BAD_REQUEST);
-      }
-    } else throw new HttpException('Incorrect Otp', HttpStatus.BAD_REQUEST);
+    // Check if the OTP is correct
+    if (otpRecord?.otp !== data.otp) {
+      throw new HttpException('Incorrect OTP', HttpStatus.BAD_REQUEST);
+    }
+
+    // Check if the OTP has expired
+    if (moment(otpRecord?.createdAt).isBefore(moment().subtract(3, 'hours'))) {
+      throw new HttpException('OTP has expired', HttpStatus.BAD_REQUEST);
+    }
+
+    // Hash the password
+    const hashedPassword = await this.hashingService.toHash(data.password);
+
+    // Create the customer object with hashed password
+    const createdCustomer = new this.customerModel({
+      email: data.email,
+      gender: data.gender,
+      name: data.name,
+      mobileNumber: data.mobileNumber,
+      password: hashedPassword,
+    });
+
+    // Save the customer to the database
+    const savedCustomer = await createdCustomer.save();
+
+    // Optionally, delete the OTP record after successful registration
+    await this.emailOtpModel.findOneAndDelete({ email: data.email });
+
+    return savedCustomer;
   }
 
   async partnerVerifyOtp(data: VerifyOtpDto) {

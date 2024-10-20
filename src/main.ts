@@ -19,6 +19,7 @@ async function bootstrap() {
     .setDescription('API description for your application')
     .setVersion('1.0')
     .addTag('API')
+    .addBearerAuth()
     .build();
 
   app.enableCors();

@@ -14,7 +14,7 @@ export enum Status {
   Verified = 'Verified',
 }
 
-@Schema()
+@Schema({ timestamps: true, collection: 'Customer' })
 export class Customer {
   @Prop({ required: true })
   name: string;
@@ -25,7 +25,7 @@ export class Customer {
   @Prop({ required: true, enum: Gender })
   gender: Gender;
 
-  @Prop({ required: true, default: false })
+  @Prop({ required: true, default: true })
   isAllowed: boolean;
 
   @Prop({ required: true })

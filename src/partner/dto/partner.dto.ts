@@ -90,4 +90,9 @@ export class UploadDocsDto {
   @IsString()
   @IsNotEmpty()
   fileExtension: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  name: string;
 }

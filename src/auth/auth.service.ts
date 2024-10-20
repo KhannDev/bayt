@@ -1,4 +1,9 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import {
@@ -34,7 +39,10 @@ export class AuthService {
     }
 
     if (user.isAllowed) {
-      const token = await this.authService.createAccessToken(user.email);
+      const token = await this.authService.createAccessToken(
+        user.email,
+        'customer',
+      );
 
       return token;
     } else {
@@ -61,12 +69,18 @@ export class AuthService {
     }
 
     if (partner.isAllowed) {
-      const token = await this.authService.createAccessToken(partner.email);
+      const token = await this.authService.createAccessToken(
+        partner.email,
+        'partner',
+      );
 
       if (partner.isVerified) {
         return token;
       } else {
-        throw new UnauthorizedException('Partner under Verification');
+        throw new HttpException(
+          'Account is under Verification',
+          HttpStatus.NOT_ACCEPTABLE,
+        );
       }
     } else {
       throw new UnauthorizedException('OTP Verification Incomplete');

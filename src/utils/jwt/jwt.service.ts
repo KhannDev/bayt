@@ -13,17 +13,19 @@ export class JWTService {
   constructor() {}
 
   // Create Access Token
-  async createAccessToken(email: string): Promise<string> {
-    return jwt.sign({ email }, configuration().jwtsecret, {
-      expiresIn: '10d', // Access token expires in 2 hours
+  async createAccessToken(email: string, role: string) {
+    return jwt.sign({ email, role }, configuration().jwtsecret, {
+      expiresIn: '30d',
     });
   }
 
   // Validate and Decode Access Token
-  async decodeAccessToken(token: string): Promise<string> {
+  async decodeAccessToken(token: string) {
+    console.log('token', token);
     try {
       const data: any = jwt.verify(token, configuration().jwtsecret);
-      return data.email;
+      console.log('JWT ', data);
+      return data;
     } catch (e) {
       throw new HttpException('Invalid Access Token', HttpStatus.UNAUTHORIZED);
     }

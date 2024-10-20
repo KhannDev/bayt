@@ -4,6 +4,7 @@ import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { EmailService } from 'src/utils/email/email.service';
 import { SendOtpDto, VerifyOtpDto } from './dto/email-otp.dto';
 import { EmailOtpService } from './email-otp.service';
+import { CreateCustomerDto } from 'src/customer/dto/customer.dto';
 
 /**
  * Controller for handling email Otp
@@ -37,9 +38,9 @@ export class EmailOtpController {
   @ApiOperation({
     summary: 'Verify Otp ',
   })
-  @Post('/verifyOtp')
-  async verifyOtp(@Body() data: VerifyOtpDto) {
-    return this.emailotpservice.verifyOtp(data);
+  @Post('/verifyOtpAndCreateCustomer')
+  async verifyOtp(@Body() data: CreateCustomerDto) {
+    return this.emailotpservice.verifyOtpAndCreateCustomer(data);
   }
 
   /**

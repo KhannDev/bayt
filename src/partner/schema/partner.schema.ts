@@ -16,7 +16,7 @@ export enum AgeRange {
   '46+' = '46+',
 }
 
-@Schema()
+@Schema({ timestamps: true, collection: 'Partner' })
 export class Partner {
   @Prop({ required: true })
   name: string;
@@ -39,7 +39,7 @@ export class Partner {
   @Prop({ required: true })
   ageRange: string;
 
-  @Prop({ required: true, default: false })
+  @Prop({ required: true, default: true })
   isAllowed: boolean;
 
   @Prop({ required: true, default: false })

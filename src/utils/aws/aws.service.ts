@@ -40,7 +40,7 @@ export class AwsS3Service {
       accessKeyId: configuration().aws_s3_access_key,
       secretAccessKey: configuration().aws_s3_secret_access,
       signatureVersion: 'v4',
-      region: 'ap-south-1',
+      region: 'me-south-1',
     });
   }
 
@@ -54,18 +54,19 @@ export class AwsS3Service {
       accessKeyId: configuration().aws_s3_access_key,
       secretAccessKey: configuration().aws_s3_secret_access,
       signatureVersion: 'v4',
-      region: 'ap-south-1',
+      region: 'me-south-1',
     });
     const key = `upload/${fileName}.${fileExtension}`;
     const params = {
       Bucket: 'handy-man-bucket',
       Key: key,
       Expires: 60 * 60,
-      ACL: 'public-read',
+      // ACL: 'public-read',
     };
     const url = await this.s3.getSignedUrl('putObject', params);
     // this.logger.info(`AWS getSignedUrl success ${url}`);
 
+    console.log(url);
     return {
       key,
       url,

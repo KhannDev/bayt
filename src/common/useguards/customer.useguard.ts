@@ -1,28 +1,32 @@
 import {
   CanActivate,
   ExecutionContext,
+  forwardRef,
   HttpException,
   HttpStatus,
+  Inject,
   Injectable,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { Request } from 'express';
+
 import { CustomerService } from '../../customer/customer.service';
 import { JWTService } from '../../utils/jwt/jwt.service';
+import { CustomRequest } from '../interfaces/interface';
 import { AuthService } from 'src/auth/auth.service';
+import { PartnerService } from 'src/partner/partner.service';
 
 @Injectable()
 export class CustomerAuthGuard implements CanActivate {
   constructor(
     private readonly jwt: JWTService,
     private readonly customer: CustomerService,
+    @Inject(forwardRef(() => PartnerService))
+    private readonly partner: PartnerService,
     private readonly reflector: Reflector,
   ) {}
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const req: Request = context.switchToHttp().getRequest();
-    // console.log(req);
-
-    // console.log({ cookies: req.cookies, headers: req.headers });
+    const req: CustomRequest = context.switchToHttp().getRequest();
 
     if (!req.cookies) req.cookies = {};
     if (!req.headers) req.headers = {};
@@ -30,42 +34,40 @@ export class CustomerAuthGuard implements CanActivate {
     const { 'x-access-token': accessTokenFromCookie } = req.cookies;
 
     const { 'x-access-token': accessTokenFromHeader } = req.headers;
-    // console.log(accessTokenFromHeader);
+
     if (!accessTokenFromCookie && !accessTokenFromHeader) {
       return false;
     }
 
     try {
-      let accessToken: string;
-      // If the token is from cookie or header
-      if (accessTokenFromCookie) accessToken = accessTokenFromCookie;
-      else if (accessTokenFromHeader)
-        accessToken = String(accessTokenFromHeader);
+      // Validate the token and extract the payload
 
-      const userEmail = await this.jwt.decodeAccessToken(accessToken);
+      let accessToken = accessTokenFromCookie
+        ? accessTokenFromCookie
+        : accessTokenFromHeader;
 
-      if (!userEmail) {
-        throw new HttpException(
-          'Invalid Access token',
-          HttpStatus.UNAUTHORIZED,
-        );
+      const payload = await this.jwt.decodeAccessToken(accessToken);
+
+      // payload.role = 'partner';
+      // Check if the user is a customer or partner and attach to request
+      if (payload.role === 'customer') {
+        const customer = await this.customer.validateCustomer(payload.email);
+        req.customer = customer;
+      } else if (payload.role === 'partner') {
+        const partner = await this.partner.validatePartner(payload.email);
+
+        req.partner = partner;
+      } else {
+        throw new UnauthorizedException('Invalid user role');
       }
 
-      const user = await this.customer.findCustomerWithEmail(userEmail);
-
-      if (!user)
-        throw new HttpException('No Such Users', HttpStatus.BAD_REQUEST);
-      // @ts-ignore
-      req.user = user;
       return true;
-    } catch (e) {
-      console.log(e.message);
-      if (e.message == 'jwt expired')
-        throw new HttpException(
-          'Invalid Access Token',
-          HttpStatus.UNAUTHORIZED,
-        );
-      return false;
+    } catch (error) {
+      console.log(error.message);
+      throw new HttpException(
+        'Invalid or unauthorized access',
+        HttpStatus.UNAUTHORIZED,
+      );
     }
   }
 }

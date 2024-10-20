@@ -12,14 +12,20 @@ import configuration from './common/configuration';
 import { EmailOtpModule } from './email-otp/email-otp.module';
 import { JWTService } from './utils/jwt/jwt.service';
 import { HashingService } from './utils/hashing/hashing';
+import { CategoryController } from './category/category.controller';
+import { ServiceController } from './service/service.controller';
+import { SubServiceController } from './sub-service/sub-service.controller';
+import { CategoryModule } from './category/category.module';
+import { ServiceModule } from './service/service.module';
+import { SubServiceModule } from './sub-service/sub-service.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       load: [configuration],
       isGlobal: true,
-      envFilePath:
-        process.env.NODE_ENV == 'development' ? '.dev.env' : '.prod.env',
+      // envFilePath:
+      //   process.env.NODE_ENV == 'development' ? '.dev.env' : '.prod.env',
     }),
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
@@ -33,8 +39,11 @@ import { HashingService } from './utils/hashing/hashing';
     CustomerModule,
     PartnerModule,
     EmailOtpModule,
+    CategoryModule,
+    ServiceModule,
+    SubServiceModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, JWTService],
 })
 export class AppModule {}

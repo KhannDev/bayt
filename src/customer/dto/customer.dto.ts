@@ -42,6 +42,9 @@ export class CreateCustomerDto {
   @IsString()
   @ApiProperty()
   mobileNumber: string;
+
+  @ApiProperty()
+  otp: string;
 }
 export class UpdateCustomerDto {
   @IsOptional()
