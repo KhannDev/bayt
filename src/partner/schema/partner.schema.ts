@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Document, Types } from 'mongoose';
 
 export type PartnerDocument = Partner & Document;
 
@@ -32,6 +32,9 @@ export class Partner {
 
   @Prop({ required: true })
   city: string;
+
+  @Prop({ type: [{ type: String, ref: 'Address' }] })
+  addresses: string[]; // Array of subservice IDs
 
   @Prop({ required: true })
   experience: string;

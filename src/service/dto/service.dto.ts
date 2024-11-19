@@ -31,22 +31,23 @@ export class CreateServiceDto {
   categoryId: string;
 
   @ApiProperty()
-  @Type(() => String)
-  timeSlotIds: CreateTimeSlotDto; // Array of time slot IDs
+  @IsNotEmpty()
+  duration: number; // Duration in minutes (e.g., 30)
+
+  @ApiProperty()
+  @Type(() => Array)
+  timeSlotIds: CreateTimeSlotDto[]; // Array of time slot IDs
 }
 
 export class UpdateServiceDto {
-  @IsString()
   description?: string;
 
-  @IsUrl()
   imageUrl?: string;
 
-  @IsArray()
   @Type(() => String)
-  subServiceIds?: string[]; // Array of sub-service IDs
+  subServiceIds?: CreateSubServiceDto; // Array of sub-service IDs
 
   // @IsArray()
   @Type(() => String)
-  timeSlotIds: CreateTimeSlotDto; // Array of time slot IDs
+  timeSlotIds?: CreateTimeSlotDto; // Array of time slot IDs
 }

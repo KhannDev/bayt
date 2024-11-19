@@ -18,6 +18,9 @@ import { SubServiceController } from './sub-service/sub-service.controller';
 import { CategoryModule } from './category/category.module';
 import { ServiceModule } from './service/service.module';
 import { SubServiceModule } from './sub-service/sub-service.module';
+import { AddressController } from './address/address.controller';
+import { AddressService } from './address/address.service';
+import { AddressModule } from './address/address.module';
 
 @Module({
   imports: [
@@ -42,6 +45,7 @@ import { SubServiceModule } from './sub-service/sub-service.module';
     CategoryModule,
     ServiceModule,
     SubServiceModule,
+    AddressModule,
   ],
   controllers: [AppController],
   providers: [AppService, JWTService],

@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Document, Types } from 'mongoose';
 
 export type CustomerDocument = Customer & Document;
 
@@ -33,6 +33,9 @@ export class Customer {
 
   @Prop({ required: true, default: false })
   isDeleted: boolean;
+
+  @Prop({ type: [{ type: String, ref: 'Address' }] })
+  addresses: string[]; // Array of subservice IDs
 
   @Prop({ required: true, unique: true })
   mobileNumber: string;

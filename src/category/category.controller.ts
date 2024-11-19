@@ -41,7 +41,10 @@ export class CategoryController {
   @Get(':id')
   async getCategoryById(@Param('id') id: string) {
     try {
-      return await this.categoryService.findById(id);
+      // Use `await` on the query with populate, then call `.exec()` to execute the query
+      const category = await this.categoryService.findById(id);
+
+      return category;
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.NOT_FOUND);
     }

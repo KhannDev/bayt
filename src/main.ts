@@ -30,7 +30,7 @@ async function bootstrap() {
   // Serve Swagger at /api-docs
   SwaggerModule.setup('api-docs', app, document);
 
-  const server = await app.listen(process.env.PORT || 3000);
+  const server = await app.listen(process.env.PORT || 3004);
   server.keepAliveTimeout = 65000;
 }
 bootstrap();

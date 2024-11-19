@@ -8,20 +8,14 @@ export class TimeSlot {
   @Prop({ required: true, type: String, ref: 'Service' })
   serviceId: string;
 
-  @Prop({ required: true, type: String, ref: 'Partner' })
-  partnerId: string;
+  @Prop({ type: String, ref: 'Partner' })
+  partnerId?: string;
 
   @Prop({ required: true })
   date: Date; // The specific date for the time slot
 
-  @Prop({ required: true })
-  startTime: string; // Start time in the format "09:00 AM"
-
-  @Prop({ required: true })
-  endTime: string; // End time in the format "05:00 PM"
-
-  @Prop({ required: true })
-  duration: number; // Duration in minutes (e.g., 30)
+  @Prop({ type: [{ type: String, ref: 'TimeRange' }], required: true })
+  timeRangeIds: string[]; // Array of subservice IDs
 }
 
 export const TimeSlotSchema = SchemaFactory.createForClass(TimeSlot);

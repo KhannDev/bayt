@@ -39,8 +39,14 @@ export class Appointment {
   })
   status: string; // Status of the appointment
 
+  @Prop({ type: [{ type: String, ref: 'SubService' }], required: true })
+  subServiceIds?: string[]; // Array of subservice IDs
+
   @Prop({ required: true })
-  bookedTime: string; // The specific time slot the user booked (e.g., "09:30 AM")
+  bookedTime: string;
+
+  @Prop({ type: Types.ObjectId, ref: 'Address' })
+  address: Types.ObjectId; // Array of subservice IDs
 }
 
 export const AppointmentSchema = SchemaFactory.createForClass(Appointment);

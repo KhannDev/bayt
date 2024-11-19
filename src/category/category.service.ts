@@ -24,10 +24,6 @@ export class CategoryService {
         path: 'serviceIds',
         populate: {
           path: 'subServiceIds',
-          // model: 'SubService',
-          // options: {
-          //   sort: { price: 1 }, // Sorting by price in ascending order (use -1 for descending order)
-          // },
         },
       })
       .exec();
@@ -37,8 +33,16 @@ export class CategoryService {
   async findById(id: string): Promise<Category> {
     const category = await this.categoryModel
       .findById(id)
-      .populate('Services')
+      .populate({
+        path: 'serviceIds',
+        populate: {
+          path: 'subServiceIds', // Adjust if your field name differs
+          model: 'SubService', // Ensure 'SubService' matches the actual model name
+        },
+      })
       .exec();
+
+    console.log(category);
     if (!category) {
       throw new NotFoundException(`Category with ID ${id} not found`);
     }
@@ -71,7 +75,7 @@ export class CategoryService {
       throw new NotFoundException(`Category with ID ${id} not found`);
     }
   }
-  async addServiceToCategory(categoryId: String, serviceId: Types.ObjectId) {
+  async addServiceToCategory(categoryId: String, serviceId: string) {
     const category = await this.categoryModel.findById(categoryId);
 
     console.log('category', category);

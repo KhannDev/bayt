@@ -16,7 +16,10 @@ import { CreateServiceDto, UpdateServiceDto } from './dto/service.dto';
 import { ApiTags } from '@nestjs/swagger';
 import { GuardDuty } from 'aws-sdk';
 import { CustomerAuthGuard } from 'src/common/useguards/customer.useguard';
-import { GetAvailableTimeSlots } from './dto/timeSlot.dto';
+import {
+  GetAvailableTimeSlots,
+  UpdateOrCreateTimeSlotDto,
+} from './dto/timeSlot.dto';
 import {
   AppointmentStatusDto,
   CreateAppointmentDto,
@@ -39,10 +42,7 @@ export class ServiceController {
 
   @Post('available-timeslots')
   async getAvailableTimeSlots(@Body() timeSlots: GetAvailableTimeSlots) {
-    return this.serviceService.getAvailableTimeSlots(
-      timeSlots.serviceId,
-      timeSlots.partnerId,
-    );
+    return this.serviceService.getAvailableTimeSlots(timeSlots.serviceId);
   }
 
   @UseGuards(CustomerAuthGuard)
@@ -59,29 +59,14 @@ export class ServiceController {
   }
 
   @UseGuards(CustomerAuthGuard)
-  @Post('Appointment')
-  async AppointmentStatus(
-    @Body() createAppointmentDto: CreateAppointmentDto,
-    @Req() req: CustomRequest,
-  ) {
-    console.log('REq PARTNERERRER', req.customer);
-    return this.serviceService.createAppointment(
-      createAppointmentDto,
-      req.customer._id,
-    );
-  }
-
-  @UseGuards(CustomerAuthGuard)
   @Get('/Partner/Appointment')
   async getPartnerAppointments(@Req() req: CustomRequest) {
-    console.log('REq PARTNERERRER', req.partner);
     return this.serviceService.getAppointmentsByPartner(req.partner._id);
   }
 
   @UseGuards(CustomerAuthGuard)
   @Get('/Customer/Appointment')
   async getCustomerAppointments(@Req() req: CustomRequest) {
-    console.log('REq PARTNERERRER', req.customer);
     return this.serviceService.getAppointmentsByCustomer(req.customer._id);
   }
 
@@ -91,9 +76,21 @@ export class ServiceController {
     return this.serviceService.getAllServices();
   }
 
+  @UseGuards(CustomerAuthGuard)
+  @Get('PartnerServices')
+  async getPartnerServices(@Req() req: CustomRequest) {
+    // @Query('limit') limit: number = 10, // @Query('page') page: number = 1,
+    return this.serviceService.getPartnerServices(req.partner._id);
+  }
+
   @Get(':id')
   async getServiceById(@Param('id') id: string) {
     return this.serviceService.getServiceById(id);
+  }
+
+  @Get('/partner/timeSlots/:id')
+  async getPartnerTimeslots(@Param('id') id: string) {
+    return this.serviceService.getPartnerTimeSlots(id);
   }
 
   @Patch(':id')
@@ -107,6 +104,14 @@ export class ServiceController {
   @Patch('Appointment/:id')
   async updateAppointment(@Param('id') id: string) {
     return this.serviceService.updateAppointment(id);
+  }
+
+  @Patch('serviceTimeSlot/:id')
+  async updateServiceTimeSlot(
+    @Param('id') id: string,
+    @Body() timeSlotData: UpdateOrCreateTimeSlotDto[],
+  ) {
+    return this.serviceService.updateOrCreateTimeSlots(id, timeSlotData);
   }
 
   @Delete(':id')

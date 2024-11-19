@@ -10,6 +10,11 @@ import { CustomerModule } from 'src/customer/customer.module';
 import { PartnerModule } from 'src/partner/partner.module';
 import { TimeSlot, TimeSlotSchema } from './schema/timeSlot.schema';
 import { Appointment, AppointmentSchema } from './schema/appointment.schema';
+import { TimeRange, TimeRangeSchema } from './schema/timeRange.schema';
+import {
+  SubService,
+  SubServiceSchema,
+} from 'src/sub-service/schema/sub-service.schema';
 
 @Module({
   imports: [
@@ -18,7 +23,13 @@ import { Appointment, AppointmentSchema } from './schema/appointment.schema';
       { name: TimeSlot.name, schema: TimeSlotSchema },
     ]),
     MongooseModule.forFeature([
+      { name: TimeRange.name, schema: TimeRangeSchema },
+    ]),
+    MongooseModule.forFeature([
       { name: Appointment.name, schema: AppointmentSchema },
+    ]),
+    MongooseModule.forFeature([
+      { name: SubService.name, schema: SubServiceSchema },
     ]),
     SubServiceModule,
     CategoryModule,

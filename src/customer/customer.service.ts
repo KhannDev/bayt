@@ -77,9 +77,11 @@ export class CustomerService {
 
   async validateCustomer(email: any) {
     try {
-      const customer = await this.customerModel.findOne({
-        email,
-      }); // Replace with actual DB query
+      const customer = await this.customerModel
+        .findOne({
+          email,
+        })
+        .populate('addresses'); // Replace with actual DB query
       if (!customer) {
         console.log('empty');
         throw new HttpException('Customer Not Found', HttpStatus.NOT_FOUND);

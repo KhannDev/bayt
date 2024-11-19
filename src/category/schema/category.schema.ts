@@ -14,8 +14,8 @@ export class Category {
   @Prop({ required: true, default: true })
   isLive: boolean; // Changed 'onLive' to 'isLive' for clarity
 
-  @Prop({ type: [{ type: Types.ObjectId, ref: 'Service' }] }) // Referencing serviceIds
-  serviceIds: Types.ObjectId[]; // Array of service IDs linked to this category
+  @Prop({ type: [{ type: String, ref: 'Service' }] }) // Referencing serviceIds
+  serviceIds: string[]; // Array of service IDs linked to this category
 }
 
 export const CategorySchema = SchemaFactory.createForClass(Category);

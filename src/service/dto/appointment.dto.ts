@@ -1,5 +1,6 @@
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsArray, IsNotEmpty, IsString } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 
 export enum AppointmentStatus {
   Pending = 'pending',
@@ -19,6 +20,7 @@ export interface IAppointment {
   partnerId: string;
   bookedTime: string;
   status: AppointmentStatus; // Using the AppointmentStatus enum
+  address: string;
 }
 
 export class CreateAppointmentDto {
@@ -28,14 +30,20 @@ export class CreateAppointmentDto {
   bookedTime: string; // The specific time the user booked (e.g., "09:30 AM")
 
   @ApiProperty()
-  @IsNotEmpty()
   @IsString()
-  partnerId: string;
+  partnerId?: string;
 
   @ApiProperty()
-  @IsNotEmpty()
   @IsString()
-  serviceId: string;
+  serviceId?: string;
+
+  @ApiProperty()
+  @IsString()
+  address?: string;
+
+  @ApiProperty()
+  @Type(() => String)
+  subServiceIds?: string[];
 }
 
 export class AppointmentStatusDto {

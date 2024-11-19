@@ -27,7 +27,9 @@ export class AuthService {
 
   async login(email: string, password: string): Promise<string> {
     // Fetch the user from the database
-    const user = await this.CustomerModel.findOne({ email });
+    const user = await this.CustomerModel.findOne({
+      email: { $regex: new RegExp(`^${email}$`, 'i') },
+    });
     if (!user) {
       throw new UnauthorizedException('Invalid Email');
     }
@@ -54,7 +56,9 @@ export class AuthService {
 
   async partnerLogin(email: string, password: string): Promise<string> {
     // Fetch the user from the database
-    const partner = await this.partnerModel.findOne({ email });
+    const partner = await this.partnerModel.findOne({
+      email: { $regex: new RegExp(`^${email}$`, 'i') },
+    });
     if (!partner) {
       throw new UnauthorizedException('Invalid Email');
     }

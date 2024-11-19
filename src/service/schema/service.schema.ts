@@ -29,6 +29,9 @@ export class Service {
   })
   status: string;
 
+  @Prop({ required: true })
+  duration: number; // Duration in minutes (e.g., 30)
+
   // @Prop({ type: String, ref: 'TimeSlot', required: true })
   // timeSlotId: string; // Reference to another collection for time slots
 }
