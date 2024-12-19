@@ -25,17 +25,17 @@ export class Appointment {
   @Prop({
     required: true,
     enum: [
-      'pending',
-      'confirmed',
-      'completed',
-      'cancelled',
-      'rescheduled',
-      'in-progress',
-      'no-show',
-      'rejected',
+      'Pending',
+      'Confirmed',
+      'Completed',
+      'Cancelled',
+      'Rescheduled',
+      'In-progress',
+      'No-show',
+      'Rejected',
       'expired',
     ],
-    default: 'pending',
+    default: 'Pending',
   })
   status: string; // Status of the appointment
 

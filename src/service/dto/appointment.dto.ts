@@ -3,14 +3,14 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 
 export enum AppointmentStatus {
-  Pending = 'pending',
-  Confirmed = 'confirmed',
-  Completed = 'completed',
-  Cancelled = 'cancelled',
-  Rescheduled = 'rescheduled',
-  InProgress = 'in-progress',
+  Pending = 'Pending',
+  Accepted = 'Accepted',
+  Completed = 'Completed',
+  Cancelled = 'Cancelled',
+  Rescheduled = 'Rescheduled',
+  InProgress = 'On-progress',
   NoShow = 'no-show',
-  Rejected = 'rejected',
+  Rejected = 'Rejected',
   Expired = 'expired',
 }
 
@@ -27,7 +27,7 @@ export class CreateAppointmentDto {
   @ApiProperty()
   @IsNotEmpty()
   @IsString()
-  bookedTime: string; // The specific time the user booked (e.g., "09:30 AM")
+  bookedTime?: string; // The specific time the user booked (e.g., "09:30 AM")
 
   @ApiProperty()
   @IsString()

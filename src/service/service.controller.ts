@@ -102,8 +102,11 @@ export class ServiceController {
   }
 
   @Patch('Appointment/:id')
-  async updateAppointment(@Param('id') id: string) {
-    return this.serviceService.updateAppointment(id);
+  async updateAppointment(
+    @Param('id') id: string,
+    @Body() status: AppointmentStatusDto,
+  ) {
+    return this.serviceService.updateAppointment(id, status.status);
   }
 
   @Patch('serviceTimeSlot/:id')

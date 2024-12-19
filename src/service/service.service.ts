@@ -144,12 +144,13 @@ export class ServiceService {
 
     // Create a new appointment by correctly mapping the fields
     const appointment = new this.appointmentModel({
-      bookedTime: createAppointmentDto.bookedTime, // Ensure this is included in the object
+      bookedTime: createAppointmentDto.bookedTime,
       partnerId,
       serviceId,
       subServiceIds: createAppointmentDto.subServiceIds,
       customerId,
-      address: new Types.ObjectId(createAppointmentDto.address), // Use the userId from the authenticated request
+
+      address: new Types.ObjectId(createAppointmentDto.address),
     });
 
     // Save the appointment to the database and return it
@@ -284,9 +285,9 @@ export class ServiceService {
     return service;
   }
 
-  async updateAppointment(id: string) {
+  async updateAppointment(id: string, status: string) {
     const updatedService = await this.appointmentModel
-      .findByIdAndUpdate(id, { status: 'Accepted' }, { new: true })
+      .findByIdAndUpdate(id, { status: status }, { new: true })
       .exec();
     if (!updatedService) {
       throw new NotFoundException(`Service with id ${id} not found`);
