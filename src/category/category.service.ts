@@ -35,6 +35,7 @@ export class CategoryService {
       .findById(id)
       .populate({
         path: 'serviceIds',
+        match: { status: 'Accepted' }, // Filter services with status "Accepted"
         populate: {
           path: 'subServiceIds', // Adjust if your field name differs
           model: 'SubService', // Ensure 'SubService' matches the actual model name
