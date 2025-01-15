@@ -93,6 +93,11 @@ export class ServiceController {
     return this.serviceService.getPartnerTimeSlots(id);
   }
 
+  @Get('/appointment/:id')
+  async getAppointmentById(@Param('id') id: string) {
+    return this.serviceService.getAppointmentById(id);
+  }
+
   @Patch(':id')
   async updateService(
     @Param('id') id: string,

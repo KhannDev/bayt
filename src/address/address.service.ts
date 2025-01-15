@@ -72,4 +72,13 @@ export class AddressService {
   async findAll(): Promise<Address[]> {
     return await this.addressModel.find().exec();
   }
+
+  async deleteAddress(id: string): Promise<void> {
+    const deletedAddress = await this.addressModel
+      .findByIdAndUpdate(id, { isDeleted: true })
+      .exec();
+    if (!deletedAddress) {
+      throw new NotFoundException(`Address with id ${id} not found`);
+    }
+  }
 }

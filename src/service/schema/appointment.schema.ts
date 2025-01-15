@@ -47,6 +47,12 @@ export class Appointment {
 
   @Prop({ type: Types.ObjectId, ref: 'Address' })
   address: Types.ObjectId; // Array of subservice IDs
+
+  @Prop({ default: false })
+  isDeleted?: boolean;
+
+  @Prop()
+  bookingId?: number;
 }
 
 export const AppointmentSchema = SchemaFactory.createForClass(Appointment);

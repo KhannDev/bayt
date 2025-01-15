@@ -27,6 +27,12 @@ export class Address {
 
   @Prop()
   latitude?: string; // Latitude as a string
+
+  @Prop()
+  mapLink?: string; // Latitude as a string
+
+  @Prop({ default: false })
+  isDeleted?: boolean;
 }
 
 export const AddressSchema = SchemaFactory.createForClass(Address);

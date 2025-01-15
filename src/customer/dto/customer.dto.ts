@@ -45,6 +45,10 @@ export class CreateCustomerDto {
 
   @ApiProperty()
   otp: string;
+
+  @IsOptional()
+  @IsEnum(Gender)
+  profilePicture?: Gender;
 }
 export class UpdateCustomerDto {
   @IsOptional()
@@ -59,7 +63,6 @@ export class UpdateCustomerDto {
   @IsEnum(Gender)
   gender?: Gender;
 
-  @IsNotEmpty()
-  @IsString()
-  password: string;
+  @IsOptional()
+  profilePicture?: string;
 }

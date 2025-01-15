@@ -43,4 +43,21 @@ export class AuthController {
       return { token };
     }
   }
+
+  @Post('login/admin')
+  async adminLogin(
+    @Body() loginDto: LoginDto,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    const { email, password } = loginDto;
+    const token = await this.authService.adminLogin(email, password);
+    if (token) {
+      response.cookie('x-access-token', token, {
+        expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+        httpOnly: true,
+        secure: true,
+      });
+      return { token };
+    }
+  }
 }

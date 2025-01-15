@@ -8,7 +8,7 @@ import { CreateCustomerDto, UpdateCustomerDto } from './dto/customer.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { HashingService } from 'src/utils/hashing/hashing';
 import { Customer, CustomerDocument } from './schema/customer.schema';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { EmailOtpService } from 'src/email-otp/email-otp.service';
 
 @Injectable()
@@ -53,21 +53,24 @@ export class CustomerService {
   }
 
   async findOne(id: string): Promise<Customer> {
-    return this.customerModel.findById(id).exec();
+    const response = await this.customerModel.findById(id).exec();
+
+    console.log(response);
+    return response;
   }
 
   async update(
     id: string,
     updateCustomerDto: UpdateCustomerDto,
   ): Promise<Customer> {
-    if (updateCustomerDto.password) {
-      updateCustomerDto.password = await this.hashingService.toHash(
-        updateCustomerDto.password,
-      );
-    }
-    return this.customerModel
-      .findByIdAndUpdate(id, updateCustomerDto, { new: true })
+    console.log(id, updateCustomerDto);
+    const response = await this.customerModel
+      .findByIdAndUpdate(id, updateCustomerDto, {
+        new: true,
+      })
       .exec();
+    console.log(response);
+    return response;
   }
 
   async findCustomerWithEmail(email: string) {
@@ -77,11 +80,10 @@ export class CustomerService {
 
   async validateCustomer(email: any) {
     try {
-      const customer = await this.customerModel
-        .findOne({
-          email,
-        })
-        .populate('addresses'); // Replace with actual DB query
+      const customer = await this.customerModel.findOne({ email }).populate({
+        path: 'addresses', // Path to the addresses field
+        match: { isDeleted: false }, // Only populate where isDeleted is false
+      });
       if (!customer) {
         console.log('empty');
         throw new HttpException('Customer Not Found', HttpStatus.NOT_FOUND);
@@ -91,5 +93,18 @@ export class CustomerService {
       console.log(e.message);
       throw new HttpException('No Customer ', HttpStatus.NOT_FOUND);
     }
+  }
+  async findAllUsers(
+    page: number,
+    limit: number,
+  ): Promise<{ users: Customer[]; total: number }> {
+    const skip = (page - 1) * limit;
+
+    const [users, total] = await Promise.all([
+      this.customerModel.find().skip(skip).limit(limit).exec(),
+      this.customerModel.countDocuments(),
+    ]);
+
+    return { users, total };
   }
 }

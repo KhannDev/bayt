@@ -26,7 +26,7 @@ export class CreatePartnerDto {
   password: string;
 
   @ApiProperty()
-  @IsPhoneNumber(null) // Adjust based on country code if necessary
+  // Adjust based on country code if necessary
   @IsNotEmpty()
   mobileNumber: string;
 

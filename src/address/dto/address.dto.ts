@@ -37,4 +37,7 @@ export class CreateAddressDto {
 
   @ApiProperty()
   latitude: string; // Latitude as a string
+
+  @ApiProperty()
+  mapLink: string; // Latitude as a strng
 }

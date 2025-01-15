@@ -74,4 +74,18 @@ export class PartnerService {
       throw new HttpException('No Partner ', HttpStatus.UNAUTHORIZED);
     }
   }
+
+  async findAllPartners(
+    page: number,
+    limit: number,
+  ): Promise<{ partners: Partner[]; total: number }> {
+    const skip = (page - 1) * limit;
+
+    const [partners, total] = await Promise.all([
+      this.partnerModel.find().skip(skip).limit(limit).exec(),
+      this.partnerModel.countDocuments(),
+    ]);
+
+    return { partners, total };
+  }
 }

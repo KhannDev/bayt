@@ -38,5 +38,6 @@ import {
   ],
   providers: [ServiceService, JWTService],
   controllers: [ServiceController],
+  exports: [ServiceService],
 })
 export class ServiceModule {}

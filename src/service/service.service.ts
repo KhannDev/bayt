@@ -124,7 +124,7 @@ export class ServiceService {
 
   async getPartnerServices(partnerId): Promise<Service[]> {
     const response = this.serviceModel
-      .find({ partnerId: partnerId }) // Add the filter condition
+      .find({ partnerId: partnerId, isDeleted: false }) // Add the filter condition
       .populate('subServiceIds') // Populate the subServiceIds field
       .exec(); // Execute the query
 
@@ -138,9 +138,25 @@ export class ServiceService {
   ) {
     const partnerId = new Types.ObjectId(createAppointmentDto.partnerId); // Convert string to ObjectId
     const serviceId = new Types.ObjectId(createAppointmentDto.serviceId); // Convert string to ObjectId
+    const addressId = new Types.ObjectId(createAppointmentDto.address); // Convert string to ObjectId
 
     console.log(partnerId);
     console.log(createAppointmentDto, customerId);
+
+    // Fetch the latest appointment to determine the current max bookingId
+    const latestAppointment = await this.appointmentModel
+      .findOne()
+      .sort({ bookingId: -1 }) // Make sure the field name is 'bookingId' and not 'BookingId'
+      .select('bookingId') // Make sure the field name is 'bookingId'
+      .exec();
+
+    // Calculate the next bookingId
+    const nextBookingId =
+      latestAppointment && latestAppointment.bookingId
+        ? latestAppointment.bookingId + 1
+        : 1; // Default to 1 if no previous bookingId exists
+
+    console.log('booking Id ', nextBookingId);
 
     // Create a new appointment by correctly mapping the fields
     const appointment = new this.appointmentModel({
@@ -149,8 +165,8 @@ export class ServiceService {
       serviceId,
       subServiceIds: createAppointmentDto.subServiceIds,
       customerId,
-
-      address: new Types.ObjectId(createAppointmentDto.address),
+      address: addressId,
+      bookingId: nextBookingId, // Assign the calculated bookingId
     });
 
     // Save the appointment to the database and return it
@@ -240,7 +256,7 @@ export class ServiceService {
   // Get service by id
   async getServiceById(id: string): Promise<Service> {
     const service = await (
-      await this.serviceModel.findById(id)
+      await this.serviceModel.findById(new Types.ObjectId(id))
     ).populate('subServiceIds');
 
     if (!service) {
@@ -297,7 +313,9 @@ export class ServiceService {
 
   // Delete service by id
   async deleteService(id: string): Promise<void> {
-    const deletedService = await this.serviceModel.findByIdAndDelete(id).exec();
+    const deletedService = await this.serviceModel
+      .findByIdAndUpdate(id, { isDeleted: true })
+      .exec();
     if (!deletedService) {
       throw new NotFoundException(`Service with id ${id} not found`);
     }
@@ -453,5 +471,74 @@ export class ServiceService {
     }
 
     return { message: 'Time slots have been updated or created successfully.' };
+  }
+
+  async findAllAppointments(
+    page: number,
+    limit: number,
+    partnerId?: string,
+    serviceId?: string,
+    customerId?: string,
+    status?: string,
+    startDate?: Date,
+    endDate?: Date,
+  ): Promise<{ bookings: Appointment[]; total: number }> {
+    const skip = (page - 1) * limit;
+
+    // Build the query object based on the provided parameters
+    const query: any = {};
+
+    if (partnerId) {
+      query.partnerId = new Types.ObjectId(partnerId); // Add partnerId to the query if provided
+    }
+
+    if (serviceId) {
+      query.serviceId = new Types.ObjectId(serviceId); // Add serviceId to the query if provided
+    }
+
+    if (customerId) {
+      query.customerId = new Types.ObjectId(customerId); // Add customerId to the query if provided
+    }
+
+    if (status) {
+      query.status = status;
+    }
+
+    if (startDate || endDate) {
+      query.bookedTime = {};
+      if (startDate) {
+        query.bookedTime.$gte = startDate; // Filter appointments starting from startDate
+      }
+      if (endDate) {
+        query.bookedTime.$lte = endDate; // Filter appointments up to endDate
+      }
+    }
+
+    const [bookings, total] = await Promise.all([
+      this.appointmentModel
+        .find(query)
+        .skip(skip)
+        .limit(limit)
+        .populate('serviceId', 'name') // Specify fields you want from serviceId
+        .populate('customerId', 'name') // Specify fields you want from customerId
+        .populate('partnerId', 'name') // Specify fields you want from partnerId
+        .exec(),
+      this.appointmentModel.countDocuments(query), // Get the total count
+    ]);
+
+    return { bookings, total };
+  }
+
+  async getAppointmentById(id: string): Promise<Appointment> {
+    const appointment = await this.appointmentModel
+      .findById(new Types.ObjectId(id))
+      .populate('serviceId') // Populate the service details
+      .populate('customerId') // Populate the customer details
+      .populate('partnerId');
+
+    if (!appointment) {
+      throw new NotFoundException(`Service with id ${id} not found`);
+    }
+    return appointment;
   }
 }

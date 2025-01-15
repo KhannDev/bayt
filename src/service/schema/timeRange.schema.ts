@@ -10,6 +10,9 @@ export class TimeRange {
 
   @Prop({ required: true }) // Ensure uniqueness
   endTime: string; // End time in the format "05:00 PM"
+
+  @Prop({ default: false })
+  isDeleted?: boolean;
 }
 
 export const TimeRangeSchema = SchemaFactory.createForClass(TimeRange);
