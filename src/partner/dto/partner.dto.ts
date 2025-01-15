@@ -6,9 +6,14 @@ import {
   IsPhoneNumber,
   IsEmail,
 } from 'class-validator';
-import { AgeRange } from '../schema/partner.schema';
+
 import { ApiProperty } from '@nestjs/swagger';
 
+export enum Gender {
+  Male = 'Male',
+  Female = 'Female',
+  Other = 'Other',
+}
 export class CreatePartnerDto {
   @ApiProperty()
   @IsString()
@@ -95,4 +100,21 @@ export class UploadDocsDto {
   @IsString()
   @IsNotEmpty()
   name: string;
+}
+
+export class UpdatePartnerDto {
+  @IsOptional()
+  @IsString()
+  name?: string;
+
+  @IsOptional()
+  @IsEmail()
+  email?: string;
+
+  @IsOptional()
+  @IsEnum(Gender)
+  gender?: Gender;
+
+  @IsOptional()
+  profilePicture?: string;
 }

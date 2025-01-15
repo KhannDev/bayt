@@ -10,7 +10,7 @@ import { Model } from 'mongoose';
 import { Partner } from './schema/partner.schema';
 import { PartnerDocument } from './schema/partner.schema';
 import { AwsS3Service } from 'src/utils/aws/aws.service';
-import { CreatePartnerDto } from './dto/partner.dto';
+import { CreatePartnerDto, UpdatePartnerDto } from './dto/partner.dto';
 import { HashingService } from 'src/utils/hashing/hashing';
 import { EmailOtpService } from 'src/email-otp/email-otp.service';
 import { CustomerAuthGuard } from 'src/common/useguards/customer.useguard';
@@ -87,5 +87,19 @@ export class PartnerService {
     ]);
 
     return { partners, total };
+  }
+
+  async update(
+    id: string,
+    updateCustomerDto: UpdatePartnerDto,
+  ): Promise<Partner> {
+    console.log(id, updateCustomerDto);
+    const response = await this.partnerModel
+      .findByIdAndUpdate(id, updateCustomerDto, {
+        new: true,
+      })
+      .exec();
+    console.log(response);
+    return response;
   }
 }

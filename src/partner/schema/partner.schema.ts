@@ -9,11 +9,10 @@ export type PartnerDocument = Partner & Document;
 //   Senior = 'Senior',
 // }
 
-export enum AgeRange {
-  '18-25' = '18-25',
-  '26-35' = '26-35',
-  '36-45' = '36-45',
-  '46+' = '46+',
+export enum Gender {
+  Male = 'Male',
+  Female = 'Female',
+  Other = 'Other',
 }
 
 @Schema({ timestamps: true, collection: 'Partner' })
@@ -30,8 +29,14 @@ export class Partner {
   @Prop({ required: true, unique: true })
   mobileNumber: string;
 
+  @Prop({ enum: Gender })
+  gender?: Gender;
+
   @Prop({ required: true })
   city: string;
+
+  @Prop({ required: false })
+  profilePicture?: string; // Optional field
 
   @Prop({ type: [{ type: String, ref: 'Address' }] })
   addresses: string[]; // Array of subservice IDs

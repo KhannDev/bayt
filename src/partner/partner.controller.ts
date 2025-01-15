@@ -8,9 +8,14 @@ import {
   Req,
   HttpException,
   HttpStatus,
+  Put,
 } from '@nestjs/common';
 import { PartnerService } from './partner.service';
-import { CreatePartnerDto, UploadDocsDto } from './dto/partner.dto';
+import {
+  CreatePartnerDto,
+  UpdatePartnerDto,
+  UploadDocsDto,
+} from './dto/partner.dto';
 import { AwsS3Service } from 'src/utils/aws/aws.service';
 import { CustomerAuthGuard } from 'src/common/useguards/customer.useguard';
 import { ApiOperation } from '@nestjs/swagger';
@@ -67,5 +72,12 @@ export class PartnerController {
     } catch (e) {
       throw new HttpException('UnAuthorized ', HttpStatus.UNAUTHORIZED);
     }
+  }
+  @Put(':id')
+  async update(
+    @Param('id') id: string,
+    @Body() updateCustomerDto: UpdatePartnerDto,
+  ): Promise<Partner> {
+    return this.partnerService.update(id, updateCustomerDto);
   }
 }
