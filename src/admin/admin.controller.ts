@@ -112,25 +112,26 @@ export class AdminController {
     name: 'customerId',
     required: false,
     type: String,
-    description: 'Filter by service ID',
+    description: 'Filter by customer ID',
   })
   @ApiQuery({
     name: 'status',
     required: false,
     type: String,
-    description: 'Filter by service ID',
+    description:
+      'Filter by appointment status (e.g., Pending, Confirmed, etc.)',
   })
   @ApiQuery({
     name: 'startDate',
     required: false,
     type: Date,
-    description: 'Filter by service ID',
+    description: 'Filter by start date for the appointment',
   })
   @ApiQuery({
     name: 'endDate',
     required: false,
     type: Date,
-    description: 'Filter by service ID',
+    description: 'Filter by end date for the appointment',
   })
   async findAllAppointments(
     @Query('page') page?: number,

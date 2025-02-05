@@ -12,7 +12,7 @@ export class Category {
   imageUrl: string;
 
   @Prop({ required: true, default: true })
-  isLive: boolean; // Changed 'onLive' to 'isLive' for clarity
+  isActive: boolean; // Changed 'onLive' to 'isLive' for clarity
 
   @Prop({ type: [{ type: String, ref: 'Service' }] }) // Referencing serviceIds
   serviceIds: string[]; // Array of service IDs linked to this category

@@ -48,6 +48,8 @@ export class CustomerAuthGuard implements CanActivate {
 
       const payload = await this.jwt.decodeAccessToken(accessToken);
 
+      console.log('Payload', payload);
+
       // payload.role = 'partner';
       // Check if the user is a customer or partner and attach to request
       if (payload.role === 'customer') {

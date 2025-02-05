@@ -54,6 +54,7 @@ export class ServiceService {
       ...createServiceDto,
       subServiceIds,
       partnerId,
+      category: createServiceDto.categoryId,
     });
 
     const createdService = await newService.save();
@@ -112,14 +113,26 @@ export class ServiceService {
   }
 
   // Get services with pagination
-  async getAllServices(): Promise<Service[]> {
-    const response = this.serviceModel
-      .find({ status: 'Accepted' }) // Add the filter condition
-      .populate('subServiceIds') // Populate the subServiceIds field
-      .exec(); // Execute the query
+  async getAllServices(
+    page?: number,
+    limit?: number,
+  ): Promise<{ services: Service[]; total: number }> {
+    let skip;
+    if (page && limit) {
+      skip = (page - 1) * limit;
+    }
 
-    console.log(response);
-    return response;
+    const [services, total] = await Promise.all([
+      this.serviceModel
+        .find()
+        .populate('subServiceIds')
+        .skip(skip)
+        .limit(limit)
+        .exec(),
+      this.serviceModel.countDocuments(),
+    ]);
+
+    return { services, total };
   }
 
   async getPartnerServices(partnerId): Promise<Service[]> {
@@ -184,7 +197,14 @@ export class ServiceService {
       .find({ customerId: objectId })
       .populate('serviceId') // Populating service details if needed
       .populate('partnerId') // Populating partner details if needed
-      .populate('subServiceIds') // Populating partner details if needed
+      .populate({
+        path: 'subServiceIds',
+        // Specify which fields to include from the sub-services
+        populate: {
+          path: 'subservice',
+          model: 'Allservices',
+        },
+      }) // Populating partner details if needed
       .populate('address') // Populating partner details if needed
       .lean() // Convert Mongoose documents to plain objects
       .exec();
@@ -216,7 +236,11 @@ export class ServiceService {
       })
       .populate({
         path: 'subServiceIds',
-        select: 'name price', // Specify which fields to include from the sub-services
+        // Specify which fields to include from the sub-services
+        populate: {
+          path: 'subservice',
+          model: 'Allservices',
+        },
       })
       .populate({
         path: 'address',
@@ -226,9 +250,7 @@ export class ServiceService {
       .exec();
 
     if (!appointments || appointments.length === 0) {
-      throw new NotFoundException(
-        `No appointments found for customer with ID ${partnerId}`,
-      );
+      return [];
     }
 
     console.log(appointments); // Ensure type matches Appointment[]
@@ -255,9 +277,16 @@ export class ServiceService {
 
   // Get service by id
   async getServiceById(id: string): Promise<Service> {
-    const service = await (
-      await this.serviceModel.findById(new Types.ObjectId(id))
-    ).populate('subServiceIds');
+    const service = await this.serviceModel
+      .findById(new Types.ObjectId(id))
+      .populate({
+        path: 'subServiceIds',
+        populate: {
+          path: 'subservice', // This is the field inside subServiceIds that you want to populate
+        },
+      })
+      .populate('partnerId', 'name email') // Optional: Populating partnerId if needed
+      .populate('category', 'name');
 
     if (!service) {
       throw new NotFoundException(`Service with id ${id} not found`);
@@ -336,12 +365,13 @@ export class ServiceService {
     const appointments: any = await this.appointmentModel
       .find({
         serviceId: new Types.ObjectId(serviceId),
-        // status: 'confirmed',
+        status: { $nin: ['Rejected', 'Cancelled'] }, // Exclude these statuses
       })
+      .populate('subServiceIds')
       .exec();
 
     console.log(2);
-    console.log('Appointment', appointments);
+    console.log('Appointment', JSON.stringify(appointments, null, 3));
 
     // Extract the duration from the service
     const service = await this.serviceModel.findOne({ _id: serviceId }).exec();
@@ -370,16 +400,28 @@ export class ServiceService {
 
           // Check if this time slot is already taken by an appointment
           const isBooked = appointments.some((appointment) => {
-            return moment(appointment.bookedTime).isSame(currentTime);
+            if (moment(appointment.bookedTime).isSame(currentTime)) {
+              // Calculate total service duration from subServiceIds
+              const totalDuration = appointment.subServiceIds.reduce(
+                (acc, item) => acc + (item.serviceDuration || 0),
+                0,
+              );
+
+              // Adjust the currentTime by the total duration of the booked services
+              currentTime.add(totalDuration, 'minutes');
+
+              return true; // Mark the slot as booked
+            }
+            return false;
           });
 
           if (!isBooked) {
             // If not booked, add to the array for that date
             availableTimeSlotsMap.get(dateKey)?.push(formattedTime);
+            currentTime.add(duration, 'minutes');
           }
 
           // Increment the current time by the duration
-          currentTime.add(duration, 'minutes');
         }
       }
     }
@@ -540,5 +582,123 @@ export class ServiceService {
       throw new NotFoundException(`Service with id ${id} not found`);
     }
     return appointment;
+  }
+
+  async findAllAppointments1(
+    page: number,
+    limit: number,
+    categoryId?: string,
+    partnerId?: string,
+    serviceId?: string,
+    customerId?: string,
+    status?: string,
+    startDate?: string,
+    endDate?: string,
+  ): Promise<{ bookings: Appointment[]; total: number }> {
+    const skip = (page - 1) * limit;
+
+    // Build the query object based on the provided parameters
+    const query: any = [];
+
+    // Check if the startDate and endDate are valid Date objects or valid date strings
+
+    // Debugging: check if dates are valid Date objects
+    console.log('Start Date:', startDate);
+    console.log('End Date:', endDate);
+
+    if (categoryId) {
+      query.push({
+        $lookup: {
+          from: 'services',
+          localField: 'serviceId',
+          foreignField: '_id',
+          as: 'serviceDetails',
+        },
+      });
+
+      query.push({
+        $unwind: '$serviceDetails',
+      });
+
+      query.push({
+        $match: {
+          'serviceDetails.subserviceIds.subservice.category':
+            new Types.ObjectId(categoryId),
+        },
+      });
+    }
+
+    if (partnerId) {
+      query.push({ $match: { partnerId: new Types.ObjectId(partnerId) } });
+    }
+
+    if (serviceId) {
+      query.push({ $match: { serviceId: new Types.ObjectId(serviceId) } });
+    }
+
+    if (customerId) {
+      query.push({ $match: { customerId: new Types.ObjectId(customerId) } });
+    }
+
+    if (status) {
+      query.push({ $match: { status } });
+    }
+
+    // Handle startDate and endDate filtering in the aggregation pipeline
+    if (startDate || endDate) {
+      const dateFilter: any = {};
+      if (startDate) {
+        dateFilter.$gte = new Date(startDate); // Ensure startDate is a valid Date
+      }
+      if (endDate) {
+        dateFilter.$lte = new Date(endDate); // Ensure endDate is a valid Date
+      }
+
+      console.log('Date filter:', dateFilter); // Log the date filter for debugging
+
+      query.push({
+        $match: {
+          bookedTime: dateFilter,
+        },
+      });
+    }
+
+    // Aggregation pipeline
+    const bookingsQuery = [
+      ...query,
+      { $skip: skip },
+      { $limit: limit },
+      {
+        $lookup: {
+          from: 'services',
+          localField: 'serviceId',
+          foreignField: '_id',
+          as: 'serviceId',
+        },
+      },
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'customerId',
+          foreignField: '_id',
+          as: 'customerId',
+        },
+      },
+      {
+        $lookup: {
+          from: 'partners',
+          localField: 'partnerId',
+          foreignField: '_id',
+          as: 'partnerId',
+        },
+      },
+    ];
+
+    const [bookings, total] = await Promise.all([
+      this.appointmentModel.aggregate(bookingsQuery),
+      this.appointmentModel.countDocuments(query), // Get the total count
+    ]);
+
+    return { bookings, total };
   }
 }

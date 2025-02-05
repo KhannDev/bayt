@@ -8,10 +8,11 @@ import {
   Body,
   HttpStatus,
   HttpException,
+  Query,
 } from '@nestjs/common';
 import { CategoryService } from './category.service';
 import { CreateCategoryDto, UpdateCategoryDto } from './dto/category.dto';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiQuery, ApiTags } from '@nestjs/swagger';
 
 @ApiTags('categories')
 @Controller('categories')
@@ -27,11 +28,26 @@ export class CategoryController {
     }
   }
 
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    type: Number,
+    description: 'Page number for pagination',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    description: 'Limit for pagination',
+  })
   @Get()
-  async getAllCategories() {
+  async getAllCategories(
+    @Query('page') page?: number,
+    @Query('limit') limit?: number,
+  ) {
     try {
-      const response = await this.categoryService.findAll();
-      console.log(response);
+      const response = await this.categoryService.findAll(page, limit);
+      console.log(response.categories);
       return response;
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.BAD_REQUEST);

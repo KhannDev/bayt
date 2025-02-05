@@ -19,7 +19,7 @@ export class Service {
   @Prop({ type: [{ type: String, ref: 'SubService' }], required: true })
   subServiceIds: string[]; // Array of subservice IDs
 
-  @Prop({ type: Types.ObjectId, required: true })
+  @Prop({ type: Types.ObjectId, required: true, ref: 'Partner' })
   partnerId: Types.ObjectId; // Array of subservice IDs
 
   @Prop({
@@ -34,6 +34,9 @@ export class Service {
 
   @Prop({ default: false })
   isDeleted?: boolean;
+
+  @Prop({ type: Types.ObjectId, ref: 'Category' })
+  category: Types.ObjectId;
 
   // @Prop({ type: String, ref: 'TimeSlot', required: true })
   // timeSlotId: string; // Reference to another collection for time slots

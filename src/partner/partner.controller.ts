@@ -9,6 +9,7 @@ import {
   HttpException,
   HttpStatus,
   Put,
+  Query,
 } from '@nestjs/common';
 import { PartnerService } from './partner.service';
 import {
@@ -44,10 +45,37 @@ export class PartnerController {
     );
   }
 
-  @UseGuards(CustomerAuthGuard)
   @Get()
-  async getAllPartners() {
+  async getAllPartners(page?: number) {
     return this.partnerService.getAllPartners();
+  }
+
+  @UseGuards(CustomerAuthGuard)
+  @ApiOperation({ summary: 'Get currently logged-in customer' })
+  @Get('/me')
+  async getPartnerData(@Req() req: CustomRequest): Promise<Partner> {
+    try {
+      const partner = req.partner as Partner; // Access the user from the request
+
+      if (!req.partner) {
+        throw new HttpException('Unauthorized', HttpStatus.UNAUTHORIZED);
+      }
+      return partner;
+    } catch (e) {
+      throw new HttpException('UnAuthorized ', HttpStatus.UNAUTHORIZED);
+    }
+  }
+
+  @Get(':id')
+  async getCategoryById(@Param('id') id: string) {
+    try {
+      // Use `await` on the query with populate, then call `.exec()` to execute the query
+      const category = await this.partnerService.findById(id);
+
+      return category;
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+    }
   }
 
   @Post('uploadDocs')
@@ -60,19 +88,6 @@ export class PartnerController {
     return { signedUrl };
   }
 
-  @UseGuards(CustomerAuthGuard)
-  @ApiOperation({ summary: 'Get currently logged-in customer' })
-  @Get('/me')
-  async getCustomerData(@Req() req: CustomRequest): Promise<Partner> {
-    try {
-      // console.log(req);
-      const partner = req.partner as Partner; // Access the user from the request
-
-      return partner;
-    } catch (e) {
-      throw new HttpException('UnAuthorized ', HttpStatus.UNAUTHORIZED);
-    }
-  }
   @Put(':id')
   async update(
     @Param('id') id: string,

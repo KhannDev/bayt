@@ -25,6 +25,8 @@ import { AdminController } from './admin/admin.controller';
 import { AdminService } from './admin/admin.service';
 import { AdminModule } from './admin/admin.module';
 
+import { AllservicesModule } from './allservices/allservices.module';
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -50,6 +52,7 @@ import { AdminModule } from './admin/admin.module';
     SubServiceModule,
     AddressModule,
     AdminModule,
+    AllservicesModule,
   ],
   controllers: [AppController],
   providers: [AppService, JWTService],

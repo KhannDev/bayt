@@ -14,19 +14,17 @@ export class CreateCategoryDto {
 
   @ApiProperty()
   @IsBoolean()
-  onLive: boolean; // Indicates if the category is active or not
+  isActive: boolean; // Indicates if the category is active or not
 }
 
 export class UpdateCategoryDto {
   @ApiProperty()
-  @IsString()
   name?: string;
 
   @ApiProperty()
-  @IsUrl()
   imageUrl?: string;
 
   @ApiProperty()
   @IsBoolean()
-  onLive?: boolean; // Indicates if the category is active or not
+  isActive?: boolean; // Indicates if the category is active or not
 }

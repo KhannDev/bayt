@@ -2,6 +2,7 @@ import {
   HttpException,
   HttpStatus,
   Injectable,
+  NotFoundException,
   UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
@@ -64,6 +65,7 @@ export class PartnerService {
     // Implement logic to validate customer based on payload data
     // For example, check the customer ID in the payload and fetch from DB
 
+    console.log('Email', email);
     try {
       const partner = await this.partnerModel.findOne({ email }); // Replace with actual DB query
       if (!partner)
@@ -89,6 +91,16 @@ export class PartnerService {
     return { partners, total };
   }
 
+  async findById(id: string): Promise<Partner> {
+    const category = await this.partnerModel.findById(id).exec();
+
+    console.log(category);
+    if (!category) {
+      throw new NotFoundException(`Category with ID ${id} not found`);
+    }
+    return category;
+  }
+
   async update(
     id: string,
     updateCustomerDto: UpdatePartnerDto,
@@ -99,7 +111,7 @@ export class PartnerService {
         new: true,
       })
       .exec();
-    console.log(response);
+    // console.log(response);
     return response;
   }
 }

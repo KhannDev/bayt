@@ -5,20 +5,26 @@ export class CreateSubServiceDto {
   @ApiProperty()
   @IsNotEmpty()
   @IsString()
-  name: string;
+  subservice: string;
 
   @ApiProperty()
   @IsNotEmpty()
   @IsNumber()
   price: number; // Price of the sub-service
+
+  @ApiProperty()
+  serviceDuration: number;
 }
 
 export class UpdateSubServiceDto {
   @ApiProperty()
   @IsString()
-  name?: string;
+  subservice?: string;
 
   @ApiProperty()
   @IsNumber()
   price?: number; // Price of the sub-service
+
+  @ApiProperty()
+  serviceDuration?: number;
 }

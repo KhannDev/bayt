@@ -47,7 +47,7 @@ export class SubServiceService {
     }
   }
   async createSubServices(
-    subServices: Array<{ name: string; price: number }>,
+    subServices: Array<{ subservice: string; price: number }>,
   ): Promise<string[]> {
     const subServiceIds = [];
 

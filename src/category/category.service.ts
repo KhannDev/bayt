@@ -16,17 +16,31 @@ export class CategoryService {
     return await category.save();
   }
 
-  // Get all categories
-  async findAll(): Promise<Category[]> {
-    return await this.categoryModel
-      .find()
-      .populate({
-        path: 'serviceIds',
-        populate: {
-          path: 'subServiceIds',
-        },
-      })
-      .exec();
+  async findAll(
+    page?: number,
+    limit?: number,
+  ): Promise<{ categories: Category[]; total: number }> {
+    let skip;
+    if (page && limit) {
+      skip = (page - 1) * limit;
+    }
+
+    const [categories, total] = await Promise.all([
+      this.categoryModel
+        .find()
+        .populate({
+          path: 'serviceIds',
+          populate: {
+            path: 'subServiceIds',
+          },
+        })
+        .skip(skip)
+        .limit(limit)
+        .exec(),
+      this.categoryModel.countDocuments(),
+    ]);
+
+    return { categories, total };
   }
 
   // Get a single category by ID
@@ -37,13 +51,16 @@ export class CategoryService {
         path: 'serviceIds',
         match: { status: 'Accepted' }, // Filter services with status "Accepted"
         populate: {
-          path: 'subServiceIds', // Adjust if your field name differs
-          model: 'SubService', // Ensure 'SubService' matches the actual model name
+          path: 'subServiceIds', // Populating subservices
+          model: 'SubService',
+          populate: {
+            path: 'subservice', // Populate another field inside Subservice
+            model: 'Allservices', // Change to the actual model name
+          },
         },
       })
       .exec();
 
-    console.log(category);
     if (!category) {
       throw new NotFoundException(`Category with ID ${id} not found`);
     }

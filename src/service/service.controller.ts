@@ -13,7 +13,7 @@ import {
 import { ServiceService } from './service.service';
 import { CustomRequest } from './../common/interfaces/interface';
 import { CreateServiceDto, UpdateServiceDto } from './dto/service.dto';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiQuery, ApiTags } from '@nestjs/swagger';
 import { GuardDuty } from 'aws-sdk';
 import { CustomerAuthGuard } from 'src/common/useguards/customer.useguard';
 import {
@@ -70,10 +70,25 @@ export class ServiceController {
     return this.serviceService.getAppointmentsByCustomer(req.customer._id);
   }
 
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    type: Number,
+    description: 'Page number for pagination',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    description: 'Limit for pagination',
+  })
   @Get()
-  async getServices() {
+  async getServices(
+    @Query('page') page: number,
+    @Query('limit') limit: number,
+  ) {
     // @Query('limit') limit: number = 10, // @Query('page') page: number = 1,
-    return this.serviceService.getAllServices();
+    return this.serviceService.getAllServices(page, limit);
   }
 
   @UseGuards(CustomerAuthGuard)
