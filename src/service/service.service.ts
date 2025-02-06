@@ -524,51 +524,65 @@ export class ServiceService {
     status?: string,
     startDate?: Date,
     endDate?: Date,
+    category?: string,
   ): Promise<{ bookings: Appointment[]; total: number }> {
     const skip = (page - 1) * limit;
 
-    // Build the query object based on the provided parameters
+    const limitNumber = Number(limit);
+
+    // Build the query object
     const query: any = {};
 
-    if (partnerId) {
-      query.partnerId = new Types.ObjectId(partnerId); // Add partnerId to the query if provided
-    }
-
-    if (serviceId) {
-      query.serviceId = new Types.ObjectId(serviceId); // Add serviceId to the query if provided
-    }
-
-    if (customerId) {
-      query.customerId = new Types.ObjectId(customerId); // Add customerId to the query if provided
-    }
-
-    if (status) {
-      query.status = status;
-    }
-
+    if (partnerId) query.partnerId = new Types.ObjectId(partnerId);
+    if (serviceId) query.serviceId = new Types.ObjectId(serviceId);
+    if (customerId) query.customerId = new Types.ObjectId(customerId);
+    if (status) query.status = status;
     if (startDate || endDate) {
       query.bookedTime = {};
-      if (startDate) {
-        query.bookedTime.$gte = startDate; // Filter appointments starting from startDate
-      }
-      if (endDate) {
-        query.bookedTime.$lte = endDate; // Filter appointments up to endDate
-      }
+      if (startDate) query.bookedTime.$gte = startDate;
+      if (endDate) query.bookedTime.$lte = endDate;
     }
 
-    const [bookings, total] = await Promise.all([
-      this.appointmentModel
-        .find(query)
-        .skip(skip)
-        .limit(limit)
-        .populate('serviceId', 'name') // Specify fields you want from serviceId
-        .populate('customerId', 'name') // Specify fields you want from customerId
-        .populate('partnerId', 'name') // Specify fields you want from partnerId
-        .exec(),
-      this.appointmentModel.countDocuments(query), // Get the total count
-    ]);
+    const pipeline: any[] = [
+      { $match: query },
+      {
+        $lookup: {
+          from: 'services',
+          localField: 'serviceId',
+          foreignField: '_id',
+          as: 'service',
+        },
+      },
+      { $unwind: '$service' },
+      {
+        $lookup: {
+          from: 'Customer',
+          localField: 'customerId',
+          foreignField: '_id',
+          as: 'customer',
+        },
+      },
+      { $unwind: { path: '$customer', preserveNullAndEmptyArrays: true } },
+      {
+        $lookup: {
+          from: 'Partner',
+          localField: 'partnerId',
+          foreignField: '_id',
+          as: 'partner',
+        },
+      },
+      { $unwind: { path: '$partner', preserveNullAndEmptyArrays: true } },
+    ];
 
-    return { bookings, total };
+    if (category) {
+      pipeline.push({ $match: { 'service.category': category } });
+    }
+
+    pipeline.push({ $skip: skip }, { $limit: limitNumber });
+
+    const appointments = await this.appointmentModel.aggregate(pipeline).exec();
+
+    return { bookings: appointments, total: appointments.length };
   }
 
   async getAppointmentById(id: string): Promise<Appointment> {

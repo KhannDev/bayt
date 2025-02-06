@@ -133,6 +133,12 @@ export class AdminController {
     type: Date,
     description: 'Filter by end date for the appointment',
   })
+  @ApiQuery({
+    name: 'category',
+    required: false,
+    type: String,
+    description: 'Filter by category',
+  })
   async findAllAppointments(
     @Query('page') page?: number,
     @Query('limit') limit?: number,
@@ -142,6 +148,7 @@ export class AdminController {
     @Query('status') status?: string,
     @Query('startDate') startDate?: Date,
     @Query('endDate') endDate?: Date,
+    @Query('category') category?: string,
   ) {
     return this.ServiceService.findAllAppointments(
       page,
@@ -152,6 +159,7 @@ export class AdminController {
       status,
       startDate,
       endDate,
+      category,
     );
   }
 }
