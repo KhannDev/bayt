@@ -14,27 +14,25 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe());
   app.use(cookieParser());
 
-  // const corsOptions: CorsOptions = {
-  //   origin: (origin, callback) => {
-  //     if (
-  //       !origin ||
-  //       origin === 'http://localhost:3000' ||
-  //       origin === 'http://localhost:3004' ||
-  //       origin === 'https://handyman-swart.vercel.app'
-  //     ) {
-  //       callback(null, true);
-  //     } else {
-  //       callback(new Error('Not allowed by CORS'));
-  //     }
-  //   },
-  //   credentials: true,
-  // };
+  const corsOptions: CorsOptions = {
+    origin: (origin, callback) => {
+      if (
+        !origin ||
+        origin === 'http://localhost:3000' ||
+        origin === 'http://localhost:3004' ||
+        origin === 'https://handyman-swart.vercel.app'
+      ) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    credentials: true,
+  };
 
-  // console.log('Corss', corsOptions);
+  console.log('Corss', corsOptions);
 
-  // app.enableCors(corsOptions);
-
-  app.enableCors();
+  app.enableCors(corsOptions);
 
   // Configure Swagger options
   const config = new DocumentBuilder()
