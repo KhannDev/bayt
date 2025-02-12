@@ -19,7 +19,8 @@ async function bootstrap() {
       if (
         !origin ||
         origin === 'http://localhost:3000' ||
-        origin === 'http://localhost:3004'
+        origin === 'http://localhost:3004' ||
+        origin === 'https://handyman-swart.vercel.app'
       ) {
         callback(null, true);
       } else {
