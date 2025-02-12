@@ -57,7 +57,7 @@ export class AuthController {
       response.cookie('x-access-token', data.token, {
         expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
         httpOnly: true,
-        secure: true,
+        secure: false,
       });
       return { data };
     }
