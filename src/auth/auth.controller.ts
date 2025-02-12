@@ -50,14 +50,16 @@ export class AuthController {
     @Res({ passthrough: true }) response: Response,
   ) {
     const { email, password } = loginDto;
-    const token = await this.authService.adminLogin(email, password);
-    if (token) {
-      response.cookie('x-access-token', token, {
+    const data = await this.authService.adminLogin(email, password);
+
+    console.log('data', data);
+    if (data) {
+      response.cookie('x-access-token', data.token, {
         expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
         httpOnly: true,
-        secure: true,
+        secure: false,
       });
-      return { token };
+      return { data };
     }
   }
 }

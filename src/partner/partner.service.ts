@@ -81,12 +81,79 @@ export class PartnerService {
     page: number,
     limit: number,
   ): Promise<{ partners: Partner[]; total: number }> {
-    const skip = (page - 1) * limit;
+    const skip = Number(page - 1) * Number(limit);
+    const limitNum = Number(limit);
 
-    const [partners, total] = await Promise.all([
-      this.partnerModel.find().skip(skip).limit(limit).exec(),
-      this.partnerModel.countDocuments(),
+    console.log('IM hereeee');
+
+    const result = await this.partnerModel.aggregate([
+      {
+        $addFields: {
+          approvedByObjectId: {
+            $cond: {
+              if: { $eq: [{ $type: '$approvedBy' }, 'string'] }, // Check if it's a string
+              then: { $toObjectId: '$approvedBy' }, // Convert to ObjectId
+              else: '$approvedBy',
+            },
+          },
+        },
+      },
+      {
+        $lookup: {
+          from: 'services',
+          localField: '_id',
+          foreignField: 'partnerId',
+          as: 'services',
+        },
+      },
+      {
+        $lookup: {
+          from: 'admins',
+          localField: 'approvedByObjectId', // Use the converted ObjectId field
+          foreignField: '_id',
+          as: 'approvedBy',
+        },
+      },
+      {
+        $unwind: {
+          path: '$approvedBy',
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+
+      {
+        $project: {
+          partnerDetails: '$$ROOT',
+          services: {
+            $map: {
+              input: '$services',
+              as: 'service',
+              in: { name: '$$service.name' },
+            },
+          },
+          approvedBy: 1, // Keep approvedBy in the output
+        },
+      },
+      {
+        $replaceRoot: {
+          newRoot: {
+            $mergeObjects: [
+              '$partnerDetails',
+              { services: '$services', approvedBy: '$approvedBy' },
+            ],
+          },
+        },
+      },
+      {
+        $facet: {
+          partners: [{ $skip: skip }, { $limit: limitNum }],
+          totalCount: [{ $count: 'total' }],
+        },
+      },
     ]);
+
+    const partners = result[0]?.partners || [];
+    const total = result[0]?.totalCount[0]?.total || 0;
 
     return { partners, total };
   }

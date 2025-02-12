@@ -43,7 +43,8 @@ export class AdminAuthGuard implements CanActivate {
 
       const admin = await this.jwt.decodeAccessToken(accessToken);
 
-      if (!admin.email) {
+      console.log('admin', admin);
+      if (!admin.email && admin.role !== 'admin') {
         throw new HttpException(
           'Invalid Access token',
           HttpStatus.UNAUTHORIZED,
@@ -52,10 +53,11 @@ export class AdminAuthGuard implements CanActivate {
 
       const adminInfo = await this.auth.findAdminWithEmail(admin.email);
 
-      if (!admin)
+      console.log('Admin Info', adminInfo);
+      if (!adminInfo)
         throw new HttpException('No Such Users', HttpStatus.BAD_REQUEST);
       // @ts-ignore
-      req.admin = admin;
+      req.admin = adminInfo;
 
       return true;
     } catch (e) {

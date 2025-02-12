@@ -76,6 +76,12 @@ export class Partner {
 
   @Prop({ required: false })
   flexiVisa?: string; // URL or path to the Flexi Visa document
+
+  @Prop({ type: Types.ObjectId, ref: 'Admin' })
+  approvedBy?: Types.ObjectId;
+
+  @Prop()
+  approvedDate?: Date;
 }
 
 export const PartnerSchema = SchemaFactory.createForClass(Partner);

@@ -57,11 +57,19 @@ export class AuthService {
     // Generate JWT token
   }
 
-  async adminLogin(email: string, password: string): Promise<string> {
+  async adminLogin(email: string, password: string) {
     // Fetch the user from the database
-    const admin = await this.adminModel.findOne({
-      email: { $regex: new RegExp(`^${email}$`, 'i') },
-    });
+    const admin = await this.adminModel
+      .findOne({
+        email: { $regex: new RegExp(`^${email}$`, 'i') },
+      })
+      .populate({
+        path: 'adminRole',
+        model: 'AdminRole',
+        populate: {
+          path: 'permissions',
+        },
+      });
     if (!admin) {
       throw new UnauthorizedException('Invalid Email');
     }
@@ -76,19 +84,7 @@ export class AuthService {
       'admin',
     );
 
-    return token;
-    // if (user.isAllowed) {
-    //   const token = await this.authService.createAccessToken(
-    //     user.email,
-    //     'customer',
-    //   );
-
-    //   return token;
-    // } else {
-    //   throw new UnauthorizedException('Verify Account ');
-    // }
-
-    // Generate JWT token
+    return { token: token, role: admin.adminRole };
   }
 
   async partnerLogin(email: string, password: string): Promise<string> {

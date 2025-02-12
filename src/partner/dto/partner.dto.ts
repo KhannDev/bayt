@@ -103,18 +103,28 @@ export class UploadDocsDto {
 }
 
 export class UpdatePartnerDto {
+  @ApiProperty()
   @IsOptional()
   @IsString()
   name?: string;
 
+  @ApiProperty()
   @IsOptional()
   @IsEmail()
   email?: string;
 
+  @ApiProperty()
   @IsOptional()
   @IsEnum(Gender)
   gender?: Gender;
 
+  @ApiProperty()
   @IsOptional()
   profilePicture?: string;
+
+  @ApiProperty()
+  approvedBy?: string;
+
+  @ApiProperty()
+  approvedDate?: Date;
 }

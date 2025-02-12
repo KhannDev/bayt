@@ -26,6 +26,9 @@ import { AdminService } from './admin/admin.service';
 import { AdminModule } from './admin/admin.module';
 
 import { AllservicesModule } from './allservices/allservices.module';
+import { AdminRolesController } from './admin-roles/admin-role.controller';
+import { AdminRolesService } from './admin-roles/admin-role.service';
+import { AdminRolesModule } from './admin-roles/admin-role.module';
 
 @Module({
   imports: [
@@ -53,6 +56,7 @@ import { AllservicesModule } from './allservices/allservices.module';
     AddressModule,
     AdminModule,
     AllservicesModule,
+    AdminRolesModule,
   ],
   controllers: [AppController],
   providers: [AppService, JWTService],

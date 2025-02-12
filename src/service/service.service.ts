@@ -126,6 +126,9 @@ export class ServiceService {
       this.serviceModel
         .find()
         .populate('subServiceIds')
+        .populate('partnerId', 'name ')
+        .populate('category', 'name ')
+        .populate('approvedBy')
         .skip(skip)
         .limit(limit)
         .exec(),
@@ -526,9 +529,12 @@ export class ServiceService {
     endDate?: Date,
     category?: string,
   ): Promise<{ bookings: Appointment[]; total: number }> {
-    const skip = (page - 1) * limit;
+    console.log('Typesss', typeof page, typeof limit);
 
+    const pageNumber = Number(page);
     const limitNumber = Number(limit);
+
+    const skip = (pageNumber - 1) * limitNumber;
 
     // Build the query object
     const query: any = {};
@@ -572,6 +578,15 @@ export class ServiceService {
         },
       },
       { $unwind: { path: '$partner', preserveNullAndEmptyArrays: true } },
+      {
+        $lookup: {
+          from: 'categories',
+          localField: 'service.category',
+          foreignField: '_id',
+          as: 'category',
+        },
+      },
+      { $unwind: { path: '$category', preserveNullAndEmptyArrays: true } },
     ];
 
     if (category) {

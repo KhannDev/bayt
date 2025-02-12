@@ -37,6 +37,11 @@ export class Service {
 
   @Prop({ type: Types.ObjectId, ref: 'Category' })
   category: Types.ObjectId;
+  @Prop({ type: Types.ObjectId, ref: 'Admin' })
+  approvedBy?: Types.ObjectId;
+
+  @Prop()
+  approvedDate?: Date;
 
   // @Prop({ type: String, ref: 'TimeSlot', required: true })
   // timeSlotId: string; // Reference to another collection for time slots

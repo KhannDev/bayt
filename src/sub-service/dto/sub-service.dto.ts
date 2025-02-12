@@ -14,6 +14,9 @@ export class CreateSubServiceDto {
 
   @ApiProperty()
   serviceDuration: number;
+
+  @ApiProperty()
+  employeeCount: number;
 }
 
 export class UpdateSubServiceDto {
@@ -27,4 +30,7 @@ export class UpdateSubServiceDto {
 
   @ApiProperty()
   serviceDuration?: number;
+
+  @ApiProperty()
+  employeeCount: number;
 }

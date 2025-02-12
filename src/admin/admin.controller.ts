@@ -1,14 +1,29 @@
 // src/admin/admin.controller.ts
 
-import { Controller, Post, Body, UseGuards, Get, Query } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  UseGuards,
+  Get,
+  Query,
+  Param,
+  Req,
+  Delete,
+  Patch,
+  NotFoundException,
+} from '@nestjs/common';
 import { AdminService } from './admin.service';
-import { CreateAdminDto, PaginationDto } from './dto/admin.dto';
+import { CreateAdminDto, PaginationDto, UpdateAdminDto } from './dto/admin.dto';
 
 import { AdminAuthGuard } from 'src/common/useguards/admin.useguards';
 import { ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CustomerService } from 'src/customer/customer.service';
 import { PartnerService } from 'src/partner/partner.service';
 import { ServiceService } from 'src/service/service.service';
+import { UpdatePartnerDto } from 'src/partner/dto/partner.dto';
+import { CustomRequest } from 'src/common/interfaces/interface';
+import { UpdateServiceDto } from 'src/service/dto/service.dto';
 
 @ApiTags('Admin')
 @Controller('admin')
@@ -23,11 +38,16 @@ export class AdminController {
   // @UseGuards(AdminAuthGuard)
   @Post('create')
   async createAdmin(@Body() createAdminDto: CreateAdminDto) {
-    const { email, password, name } = createAdminDto;
-    return this.adminService.createAdmin(email, password, name);
+    const { email, password, name, adminRole } = createAdminDto;
+    return this.adminService.createAdmin(email, password, name, adminRole);
   }
 
-  // @UseGuards(AdminAuthGuard)
+  @Get('')
+  async getAllAdmins() {
+    return this.adminService.getAllAdmins();
+  }
+
+  @UseGuards(AdminAuthGuard)
   @Get('customers')
   @ApiQuery({
     name: 'page',
@@ -53,7 +73,7 @@ export class AdminController {
     return users;
   }
 
-  // @UseGuards(AdminAuthGuard)
+  @UseGuards(AdminAuthGuard)
   @Get('partners')
   @ApiQuery({
     name: 'page',
@@ -77,7 +97,7 @@ export class AdminController {
     const partners = await this.PartnerService.findAllPartners(page, limit);
     return partners;
   }
-
+  @UseGuards(AdminAuthGuard)
   @Get('bookings')
   @ApiOperation({ summary: 'Get all appointments' })
   @ApiResponse({
@@ -161,5 +181,59 @@ export class AdminController {
       endDate,
       category,
     );
+  }
+
+  @UseGuards(AdminAuthGuard)
+  @Post('updatePartner/:id')
+  async updatePartners(
+    @Param('id') id: string,
+    @Req() req: CustomRequest,
+    @Body() updatePartnerDto: UpdatePartnerDto,
+  ) {
+    console.log(id);
+    return this.PartnerService.update(id, {
+      ...updatePartnerDto,
+      approvedBy: req.admin.id,
+      approvedDate: new Date(),
+    });
+  }
+
+  @UseGuards(AdminAuthGuard)
+  @Post('updateService/:id')
+  async updateService(
+    @Param('id') id: string,
+    @Req() req: CustomRequest,
+    @Body() updatePartnerDto: UpdateServiceDto,
+  ) {
+    console.log(id);
+    return this.ServiceService.updateService(id, {
+      ...updatePartnerDto,
+      approvedBy: req.admin.id,
+      approvedDate: new Date(),
+    });
+  }
+
+  @Get(':id')
+  async getAdminById(@Param('id') id: string) {
+    return this.adminService.getAdminById(id);
+  }
+
+  @Delete(':id')
+  async deleteAdmin(@Param('id') id: string) {
+    return this.adminService.deleteAdmin(id);
+  }
+  @Patch(':id')
+  async updateAdmin(
+    @Param('id') id: string,
+    @Body() updateAdminDto: UpdateAdminDto,
+  ) {
+    const updatedAdmin = await this.adminService.updateAdmin(
+      id,
+      updateAdminDto,
+    );
+    if (!updatedAdmin) {
+      throw new NotFoundException('Admin not found');
+    }
+    return updatedAdmin;
   }
 }

@@ -13,6 +13,9 @@ export class SubService {
 
   @Prop({ required: true })
   serviceDuration: number; // Assuming price is a number, you can change the type if needed
+
+  @Prop({ default: 1 })
+  EmployeeCount: number; // Assuming price is a number, you can change the type if needed
 }
 
 export const SubServiceSchema = SchemaFactory.createForClass(SubService);

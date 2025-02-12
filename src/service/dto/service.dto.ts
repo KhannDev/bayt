@@ -44,6 +44,9 @@ export class UpdateServiceDto {
 
   imageUrl?: string;
 
+  approvedBy?: string;
+  approvedDate?: Date;
+
   @Type(() => String)
   subServiceIds?: CreateSubServiceDto; // Array of sub-service IDs
 

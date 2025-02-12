@@ -5,6 +5,8 @@ import {
   IsEmail,
   IsInt,
   IsNotEmpty,
+  IsOptional,
+  IsString,
   Max,
   Min,
   MinLength,
@@ -18,12 +20,15 @@ export class CreateAdminDto {
 
   @ApiProperty()
   @IsNotEmpty()
-  @MinLength(6)
   password: string;
 
   @ApiProperty()
   @IsNotEmpty()
   name: string;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  adminRole: string;
 }
 export class PaginationDto {
   @IsInt()
@@ -34,4 +39,25 @@ export class PaginationDto {
   @Min(1)
   @Max(100) // You can limit the max limit to prevent overloading the system
   limit: number;
+}
+
+export class UpdateAdminDto {
+  @ApiProperty()
+  @IsOptional()
+  @IsString()
+  name?: string;
+
+  @ApiProperty()
+  @IsOptional()
+  @IsEmail()
+  email?: string;
+
+  @ApiProperty()
+  @IsOptional()
+  password?: string; // Hashing should be handled in the service
+
+  @ApiProperty()
+  @IsOptional()
+  @IsString()
+  adminRole?: string;
 }
