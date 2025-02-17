@@ -43,6 +43,9 @@ export class Service {
   @Prop()
   approvedDate?: Date;
 
+  @Prop({ default: 1 })
+  employeeCount: number; // Assuming price is a number, you can change the type if needed
+
   // @Prop({ type: String, ref: 'TimeSlot', required: true })
   // timeSlotId: string; // Reference to another collection for time slots
 }

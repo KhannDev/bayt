@@ -355,8 +355,7 @@ export class ServiceService {
 
   // Get Available Timelslots for the service for the partner
   async getAvailableTimeSlots(serviceId: string) {
-    // Retrieve time slots for the serviceId and partnerId
-
+    // Retrieve time slots for the serviceId
     console.log('Service ID', serviceId);
     const slots: any = await this.timeSlotModel
       .find({ serviceId })
@@ -364,23 +363,23 @@ export class ServiceService {
       .exec();
 
     console.log(1);
-    // Retrieve all appointments for the given serviceId
+    // Retrieve all appointments for the given serviceId (excluding rejected/cancelled)
     const appointments: any = await this.appointmentModel
       .find({
         serviceId: new Types.ObjectId(serviceId),
-        status: { $nin: ['Rejected', 'Cancelled'] }, // Exclude these statuses
+        status: { $nin: ['Rejected', 'Cancelled'] },
       })
       .populate('subServiceIds')
       .exec();
 
     console.log(2);
-    console.log('Appointment', JSON.stringify(appointments, null, 3));
+    console.log('Appointments', JSON.stringify(appointments, null, 3));
 
-    // Extract the duration from the service
+    // Retrieve the service to get its duration and employee count
     const service = await this.serviceModel.findOne({ _id: serviceId }).exec();
-
     console.log(3);
     const duration = service.duration || 30; // Default duration in minutes if not found
+    const employeeCount = service.employeeCount || 1; // Default to 1 if not specified
 
     // Object to group time slots by date
     const availableTimeSlotsMap = new Map<string, string[]>();
@@ -397,34 +396,36 @@ export class ServiceService {
         let currentTime = moment(timeRange.startTime);
         const endTime = moment(timeRange.endTime);
 
-        // Iterate and add time slots by duration
+        // Iterate through the time range in increments
         while (currentTime.isBefore(endTime)) {
           const formattedTime = currentTime.toISOString();
 
-          // Check if this time slot is already taken by an appointment
-          const isBooked = appointments.some((appointment) => {
-            if (moment(appointment.bookedTime).isSame(currentTime)) {
-              // Calculate total service duration from subServiceIds
+          // Count how many appointments start at the current time slot
+          const bookingsAtSlot = appointments.filter((appointment) =>
+            moment(appointment.bookedTime).isSame(currentTime),
+          );
+
+          if (bookingsAtSlot.length < employeeCount) {
+            // Slot is available because we haven't reached the employee limit
+            availableTimeSlotsMap.get(dateKey)?.push(formattedTime);
+            // Move forward by the service duration
+            currentTime.add(duration, 'minutes');
+          } else {
+            // Fully booked for this time slot.
+            // Calculate the maximum duration among the bookings at this slot.
+            let maxSkip = duration; // default skip at least the duration
+            for (const appointment of bookingsAtSlot) {
               const totalDuration = appointment.subServiceIds.reduce(
-                (acc, item) => acc + (item.serviceDuration || 0),
+                (acc: number, item: any) => acc + (item.serviceDuration || 0),
                 0,
               );
-
-              // Adjust the currentTime by the total duration of the booked services
-              currentTime.add(totalDuration, 'minutes');
-
-              return true; // Mark the slot as booked
+              if (totalDuration > maxSkip) {
+                maxSkip = totalDuration;
+              }
             }
-            return false;
-          });
-
-          if (!isBooked) {
-            // If not booked, add to the array for that date
-            availableTimeSlotsMap.get(dateKey)?.push(formattedTime);
-            currentTime.add(duration, 'minutes');
+            // Skip ahead by the maximum duration of the booked appointments
+            currentTime.add(maxSkip, 'minutes');
           }
-
-          // Increment the current time by the duration
         }
       }
     }

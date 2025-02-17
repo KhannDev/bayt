@@ -37,6 +37,9 @@ export class CreateServiceDto {
   @ApiProperty()
   @Type(() => Array)
   timeSlotIds: CreateTimeSlotDto[]; // Array of time slot IDs
+
+  @ApiProperty()
+  employeeCount?: Number;
 }
 
 export class UpdateServiceDto {
@@ -46,6 +49,8 @@ export class UpdateServiceDto {
 
   approvedBy?: string;
   approvedDate?: Date;
+
+  employeeCount?: Number;
 
   @Type(() => String)
   subServiceIds?: CreateSubServiceDto; // Array of sub-service IDs

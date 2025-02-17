@@ -9,6 +9,7 @@ import { HashingService } from 'src/utils/hashing/hashing';
 import { CustomerService } from 'src/customer/customer.service';
 import { CustomerModule } from 'src/customer/customer.module';
 import { PartnerModule } from 'src/partner/partner.module';
+import { Partner, PartnerSchema } from 'src/partner/schema/partner.schema';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { PartnerModule } from 'src/partner/partner.module';
     MongooseModule.forFeature([
       { name: Customer.name, schema: CustomerSchema },
     ]),
+    MongooseModule.forFeature([{ name: Partner.name, schema: PartnerSchema }]),
     CustomerModule,
     PartnerModule,
   ],

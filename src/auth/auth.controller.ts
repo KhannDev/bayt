@@ -4,6 +4,7 @@ import { AuthService } from './auth.service';
 import { response, Response } from 'express';
 import { ApiTags } from '@nestjs/swagger';
 import { LoginDto } from './dto/auth.dto';
+import configuration from 'src/common/configuration';
 
 @ApiTags('Auth')
 @Controller('Auth')
@@ -53,11 +54,13 @@ export class AuthController {
     const data = await this.authService.adminLogin(email, password);
 
     console.log('data', data);
+
+    console.log(configuration().node_env === 'production');
     if (data) {
       response.cookie('x-access-token', data.token, {
         expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
         httpOnly: true,
-        secure: false,
+        secure: true,
       });
       return { data };
     }

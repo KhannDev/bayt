@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Address, AddressDocument } from './schema/address.schema';
@@ -8,7 +12,7 @@ import {
   Customer,
   CustomerDocument,
 } from 'src/customer/schema/customer.schema';
-import { PartnerDocument } from 'src/partner/schema/partner.schema';
+import { Partner, PartnerDocument } from 'src/partner/schema/partner.schema';
 
 @Injectable()
 export class AddressService {
@@ -17,7 +21,7 @@ export class AddressService {
     private readonly addressModel: Model<AddressDocument>,
     @InjectModel(Customer.name)
     private readonly userModel: Model<CustomerDocument>,
-    @InjectModel(Customer.name)
+    @InjectModel(Partner.name)
     private readonly partnerModel: Model<PartnerDocument>,
   ) {}
 
@@ -45,8 +49,13 @@ export class AddressService {
 
   async createPartnerAddress(
     createAddressDto: CreateAddressDto,
-    partnerId,
+    partnerId: string,
   ): Promise<Address> {
+    if (!partnerId) {
+      throw new BadRequestException('Partner ID is required');
+    }
+    console.log(partnerId);
+
     const newAddress = new this.addressModel(createAddressDto);
     const savedAddress = await newAddress.save();
 
@@ -55,6 +64,7 @@ export class AddressService {
       throw new NotFoundException(`Partner with ID ${partnerId} not found`);
     }
 
+    partner.addresses = partner.addresses || [];
     partner.addresses.push(savedAddress._id as string);
     await partner.save();
 

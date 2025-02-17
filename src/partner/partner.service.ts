@@ -67,7 +67,10 @@ export class PartnerService {
 
     console.log('Email', email);
     try {
-      const partner = await this.partnerModel.findOne({ email }); // Replace with actual DB query
+      const partner = (await this.partnerModel.findOne({ email })).populate({
+        path: 'addresses', // Path to the addresses field
+        match: { isDeleted: false }, // Only populate where isDeleted is false
+      });
       if (!partner)
         throw new HttpException('Partner Not Found', HttpStatus.NOT_FOUND);
       return partner;
@@ -83,8 +86,6 @@ export class PartnerService {
   ): Promise<{ partners: Partner[]; total: number }> {
     const skip = Number(page - 1) * Number(limit);
     const limitNum = Number(limit);
-
-    console.log('IM hereeee');
 
     const result = await this.partnerModel.aggregate([
       {
