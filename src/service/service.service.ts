@@ -597,15 +597,33 @@ export class ServiceService {
       { $unwind: { path: '$category', preserveNullAndEmptyArrays: true } },
     ];
 
+    // If category is provided, filter the results by category
     if (category) {
       pipeline.push({ $match: { 'service.category': category } });
     }
 
+    // Count total matching appointments (before pagination)
+    const totalPipeline = [
+      { $match: query },
+      {
+        $count: 'totalAppointments', // This counts the number of documents matching the query
+      },
+    ];
+
+    // Execute the count pipeline
+    const totalCountResult = await this.appointmentModel
+      .aggregate(totalPipeline)
+      .exec();
+    const total =
+      totalCountResult.length > 0 ? totalCountResult[0].totalAppointments : 0;
+
+    // Add pagination to the main pipeline
     pipeline.push({ $skip: skip }, { $limit: limitNumber });
 
+    // Fetch the paginated results
     const appointments = await this.appointmentModel.aggregate(pipeline).exec();
 
-    return { bookings: appointments, total: appointments.length };
+    return { bookings: appointments, total };
   }
 
   async getAppointmentById(id: string): Promise<Appointment> {
