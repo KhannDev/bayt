@@ -19,6 +19,7 @@ import {
 } from './dto/appointment.dto';
 import { TimeRange, TimeRangeDocument } from './schema/timeRange.schema';
 import { SubService } from 'src/sub-service/schema/sub-service.schema';
+import sendPushNotification from 'src/common/send-push-notification';
 
 @Injectable()
 export class ServiceService {
@@ -186,6 +187,13 @@ export class ServiceService {
     });
 
     // Save the appointment to the database and return it
+
+    await sendPushNotification({
+      title: 'New booking',
+      body: 'New booking created ',
+      data: {},
+      tokens: ['ExponentPushToken[Q9RzM_Cyshd9cR7EN4NcYq]'],
+    });
     return appointment.save();
   }
 
@@ -218,7 +226,7 @@ export class ServiceService {
       );
     }
 
-    console.log(appointments); // Ensure type matches Appointment[]
+    // Ensure type matches Appointment[]
     return appointments;
   }
 
@@ -256,7 +264,7 @@ export class ServiceService {
       return [];
     }
 
-    console.log(appointments); // Ensure type matches Appointment[]
+    // Ensure type matches Appointment[]
 
     return appointments;
   }
@@ -273,7 +281,7 @@ export class ServiceService {
       .lean() // Convert Mongoose documents to plain objects
       .exec();
 
-    console.log(Timeslots); // Ensure type matches Appointment[]
+    // Ensure type matches Appointment[]
 
     return Timeslots;
   }
@@ -450,7 +458,6 @@ export class ServiceService {
     for (const slot of timeSlotData) {
       const { date, timeRanges } = slot;
 
-      console.log(slot, timeRanges);
       const dateKey = new Date(date).toISOString(); // Normalize the date for comparison
 
       // Check if a time slot with the same date exists for the given serviceId and partnerId
@@ -684,7 +691,7 @@ export class ServiceService {
         dateFilter.$lte = new Date(endDate); // Ensure endDate is a valid Date
       }
 
-      console.log('Date filter:', dateFilter); // Log the date filter for debugging
+      // Log the date filter for debugging
 
       query.push({
         $match: {

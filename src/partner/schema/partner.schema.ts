@@ -32,7 +32,7 @@ export class Partner {
   @Prop({ enum: Gender })
   gender?: Gender;
 
-  @Prop({ required: true })
+  @Prop({ required: false })
   city: string;
 
   @Prop({ required: false })
@@ -41,11 +41,11 @@ export class Partner {
   @Prop({ type: [{ type: String, ref: 'Address' }] })
   addresses: string[]; // Array of subservice IDs
 
-  @Prop({ required: true })
+  @Prop({ required: false })
   experience: string;
 
   @Prop({ required: true })
-  ageRange: string;
+  dob: string;
 
   @Prop({ required: true, default: true })
   isAllowed: boolean;
@@ -59,7 +59,7 @@ export class Partner {
   @Prop({ required: true })
   currentAddress: string;
 
-  @Prop({ required: true })
+  @Prop({ required: false })
   previousWorkplace: string;
 
   @Prop({ required: false })
@@ -82,6 +82,9 @@ export class Partner {
 
   @Prop()
   approvedDate?: Date;
+
+  @Prop({ required: false })
+  expoToken?: string;
 }
 
 export const PartnerSchema = SchemaFactory.createForClass(Partner);

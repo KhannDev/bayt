@@ -24,11 +24,16 @@ import {
   AppointmentStatusDto,
   CreateAppointmentDto,
 } from './dto/appointment.dto';
+import sendPushNotification from 'src/common/send-push-notification';
+import { PartnerService } from 'src/partner/partner.service';
 
 @ApiTags('services')
 @Controller('services')
 export class ServiceController {
-  constructor(private readonly serviceService: ServiceService) {}
+  constructor(
+    private readonly serviceService: ServiceService,
+    private readonly partnerService: PartnerService,
+  ) {}
 
   @UseGuards(CustomerAuthGuard)
   @Post()
@@ -52,10 +57,22 @@ export class ServiceController {
     @Req() req: CustomRequest,
   ) {
     console.log('REq PARTNERERRER', req.customer);
-    return this.serviceService.createAppointment(
+    const response = await this.serviceService.createAppointment(
       createAppointmentDto,
       req.customer._id,
     );
+    const getPartner = await this.partnerService.findById(
+      String(response.partnerId),
+    );
+
+    await sendPushNotification({
+      title: 'New booking',
+      body: 'New booking created ',
+      data: {},
+      tokens: [(await getPartner).expoToken],
+    });
+
+    return response;
   }
 
   @UseGuards(CustomerAuthGuard)

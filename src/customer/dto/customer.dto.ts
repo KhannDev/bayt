@@ -65,4 +65,8 @@ export class UpdateCustomerDto {
 
   @IsOptional()
   profilePicture?: string;
+
+  @ApiProperty()
+  @IsOptional()
+  expoToken?: string;
 }

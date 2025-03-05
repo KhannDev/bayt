@@ -30,8 +30,10 @@ export class CustomerService {
 
     // Check if mobile number already exists
     const existingMobile = await this.customerModel.findOne({
-      mobile: createCustomerDto.mobileNumber,
+      mobileNumber: createCustomerDto.mobileNumber,
     });
+
+    console.log(existingMobile, createCustomerDto.mobileNumber);
     if (existingMobile) {
       throw new HttpException(
         'Mobile number already exists',

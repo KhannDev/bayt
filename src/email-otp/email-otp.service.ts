@@ -14,6 +14,7 @@ import {
 import { Partner, PartnerDocument } from 'src/partner/schema/partner.schema';
 import { HashingService } from 'src/utils/hashing/hashing';
 import { CreateCustomerDto } from 'src/customer/dto/customer.dto';
+import { CreatePartnerDto } from 'src/partner/dto/partner.dto';
 
 @Injectable()
 export class EmailOtpService {
@@ -53,15 +54,7 @@ export class EmailOtpService {
           html: `<p>Welcome to handyman, <br><br> Here is the OTP for your Email verification : ${res.otp} <br> <br> Please enter the above code in the app to validate your official mail <br><br> Best Regards, <br> Flaq Team  </p>`,
         });
       }
-    }
-    // else if (
-    //   moment(createdUser?.createdAt).isBefore(moment().add(3, 'hours'))
-    // ) {
-    //   // If otp hasnt expired
-
-    //   throw new HttpException('Otp Already Sent', HttpStatus.BAD_REQUEST);
-    // }
-    else {
+    } else {
       //   If Otp is generated and expired, delete the record and create a new one
 
       await this.emailOtpModel.findOneAndDelete({ email: data.email });
@@ -127,23 +120,63 @@ export class EmailOtpService {
     return savedCustomer;
   }
 
+  async verifyOtpAndCreatePartner(data: CreatePartnerDto): Promise<Partner> {
+    const otpRecord: any = await this.emailOtpModel.findOne({
+      email: data.email,
+    });
+
+    if (!otpRecord) {
+      throw new HttpException(
+        'OTP not found or already verified',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    // Check if the OTP is correct
+    if (otpRecord?.otp !== data.otp) {
+      throw new HttpException('Incorrect OTP', HttpStatus.BAD_REQUEST);
+    }
+
+    // Check if the OTP has expired
+    if (moment(otpRecord?.createdAt).isBefore(moment().subtract(3, 'hours'))) {
+      throw new HttpException('OTP has expired', HttpStatus.BAD_REQUEST);
+    }
+
+    // Hash the password
+    const hashedPassword = await this.hashingService.toHash(data.password);
+
+    // Create the customer object with hashed password
+    const createdCustomer = new this.partnerModel({
+      ...data,
+      password: hashedPassword,
+    });
+
+    // Save the customer to the database
+    const savedCustomer = await createdCustomer.save();
+
+    // Optionally, delete the OTP record after successful registration
+    await this.emailOtpModel.findOneAndDelete({ email: data.email });
+
+    return savedCustomer;
+  }
+
   async partnerVerifyOtp(data: VerifyOtpDto) {
     const createdUser: any = await this.emailOtpModel.findOne({
       email: data.email,
     });
 
-    // if (createdUser?.otp === data.otp) {
-    //   if (moment(createdUser?.createdAt).isBefore(moment().add(3, 'hours'))) {
     await this.emailOtpModel.findOneAndDelete({ email: data.email });
     const updatedCustomer = await this.partnerModel.findOneAndUpdate(
       { email: data.email }, // Find by email
       { $set: { isAllowed: true } }, // Update the fields
       { new: true }, // Return the updated document
     );
-    //   } else {
-    //     throw new HttpException('Otp has Expired', HttpStatus.BAD_REQUEST);
-    //   }
-    // } else throw new HttpException('Incorrect Otp', HttpStatus.BAD_REQUEST);
+
+    this.emailservice.sendEmail({
+      email: data.email,
+      subject: 'Account Under verification',
+      html: `<p>Welcome to handyman, <br><br> Congratulations, You're just  one step away from being an official Handyman partner. We're reviewing your details and will verify it shortly. You'll receive an email update once the verification is complete. <br> Thank you for your patience   <br><br> Best Regards, <br> Handyman  </p>`,
+    });
   }
 
   /**

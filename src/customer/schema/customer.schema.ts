@@ -25,7 +25,7 @@ export class Customer {
   @Prop({ required: true, enum: Gender })
   gender: Gender;
 
-  @Prop({ required: true, default: true })
+  @Prop({ default: true })
   isAllowed: boolean;
 
   @Prop({ required: true })
@@ -42,6 +42,9 @@ export class Customer {
 
   @Prop({ required: false })
   profilePicture?: string; // Optional field
+
+  @Prop({ required: false })
+  expoToken?: string; // Optional field
 }
 
 export const CustomerSchema = SchemaFactory.createForClass(Customer);

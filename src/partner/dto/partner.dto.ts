@@ -36,18 +36,15 @@ export class CreatePartnerDto {
   mobileNumber: string;
 
   @ApiProperty()
-  @IsString()
-  @IsNotEmpty()
   city: string;
 
   @ApiProperty()
-  @IsNotEmpty()
   experience: string;
 
   @ApiProperty()
   //   @IsEnum(AgeRange)
   @IsNotEmpty()
-  ageRange: string;
+  dob: string;
 
   @ApiProperty()
   @IsString()
@@ -55,14 +52,17 @@ export class CreatePartnerDto {
   currentAddress: string;
 
   @ApiProperty()
-  @IsString()
-  @IsNotEmpty()
   previousWorkplace: string;
 
   @ApiProperty()
   @IsString()
   @IsOptional()
   passportFront?: string;
+
+  @ApiProperty()
+  // @IsString()
+  // @IsNotEmpty()
+  otp?: string;
 
   @ApiProperty()
   @IsString()
@@ -121,6 +121,10 @@ export class UpdatePartnerDto {
   @ApiProperty()
   @IsOptional()
   profilePicture?: string;
+
+  @ApiProperty()
+  @IsOptional()
+  expoToken?: string;
 
   @ApiProperty()
   approvedBy?: string;

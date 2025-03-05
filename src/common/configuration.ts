@@ -5,6 +5,7 @@ const configuration = () => ({
   aws_s3_secret_access: verifyEnv('AWS_S3_SECRET_ACCESS_KEY'),
   // aws_s3_flaq_bucket: verifyEnv('AWS_S3_FLAQ_BUCKET'),
   node_env: verifyEnv('NODE_ENV'),
+  expo_token: verifyEnv('EXPO_TOKEN'),
 
   smtp: {
     SMTP_HOST: verifyEnv('SMTP_HOST'),
