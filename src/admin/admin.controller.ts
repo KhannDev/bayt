@@ -26,6 +26,8 @@ import { CustomRequest } from 'src/common/interfaces/interface';
 import { UpdateServiceDto } from 'src/service/dto/service.dto';
 import { CategoryService } from 'src/category/category.service';
 import { CreateCategoryDto } from 'src/category/dto/category.dto';
+import { AllservicesService } from 'src/allservices/allservices.service';
+import { CreateSubserviceDto } from 'src/allservices/dto/allservices.dto';
 
 @ApiTags('Admin')
 @Controller('admin')
@@ -36,6 +38,7 @@ export class AdminController {
     private readonly PartnerService: PartnerService,
     private readonly ServiceService: ServiceService,
     private readonly CategoryService: CategoryService,
+    private readonly AllService: AllservicesService,
   ) {}
 
   // @UseGuards(AdminAuthGuard)
@@ -165,6 +168,18 @@ export class AdminController {
       ...updatePartnerDto,
       approvedBy: req.admin.id,
       approvedDate: new Date(),
+    });
+  }
+
+  @UseGuards(AdminAuthGuard)
+  @Post('createAllService/')
+  async createAllService(
+    @Req() req: CustomRequest,
+    @Body() createSubserviceDto: CreateSubserviceDto,
+  ) {
+    return this.AllService.create({
+      ...createSubserviceDto,
+      createdBy: req.admin.id,
     });
   }
 

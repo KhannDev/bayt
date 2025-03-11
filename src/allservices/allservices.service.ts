@@ -30,6 +30,7 @@ export class AllservicesService {
     const data = await this.subserviceModel
       .find(query)
       .populate('category', 'name')
+      .populate('createdBy')
       .skip((page - 1) * limit)
       .limit(limit)
       .exec();

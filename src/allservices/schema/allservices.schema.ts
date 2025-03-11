@@ -12,6 +12,9 @@ export class Allservices {
   isVerified: boolean;
   @Prop({ type: Types.ObjectId, ref: 'Category' })
   category: Types.ObjectId;
+
+  @Prop({ type: Types.ObjectId, ref: 'Admin' })
+  createdBy?: Types.ObjectId;
 }
 
 export const AllserviceSchema = SchemaFactory.createForClass(Allservices);

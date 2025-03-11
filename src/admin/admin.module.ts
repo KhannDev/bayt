@@ -12,6 +12,8 @@ import { PartnerModule } from 'src/partner/partner.module';
 import { ServiceModule } from 'src/service/service.module';
 import { Category } from 'src/category/schema/category.schema';
 import { CategoryModule } from 'src/category/category.module';
+import { Allservices } from 'src/allservices/schema/allservices.schema';
+import { AllservicesModule } from 'src/allservices/allservices.module';
 
 @Module({
   imports: [
@@ -20,6 +22,7 @@ import { CategoryModule } from 'src/category/category.module';
     PartnerModule,
     ServiceModule,
     CategoryModule,
+    AllservicesModule,
   ],
   providers: [AdminService, HashingService, JWTService],
   controllers: [AdminController],

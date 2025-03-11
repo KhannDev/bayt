@@ -12,5 +12,6 @@ import { Allservices, AllserviceSchema } from './schema/allservices.schema';
   ],
   controllers: [AllservicesController],
   providers: [AllservicesService],
+  exports: [AllservicesService],
 })
 export class AllservicesModule {}

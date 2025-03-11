@@ -13,5 +13,8 @@ export class CreateSubserviceDto {
   @IsNotEmpty()
   @IsString()
   category: string;
+
+  @ApiProperty()
+  createdBy?: string;
 }
 export class UpdateSubserviceDto extends PartialType(CreateSubserviceDto) {}
