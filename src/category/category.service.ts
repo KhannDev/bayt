@@ -50,7 +50,7 @@ export class CategoryService {
       .findById(id)
       .populate({
         path: 'serviceIds',
-        match: { status: 'Accepted' }, // Filter services with status "Accepted"
+        match: { status: 'Accepted', isDisabled: false }, // Filter services with status "Accepted"
         populate: {
           path: 'subServiceIds', // Populating subservices
           model: 'SubService',
