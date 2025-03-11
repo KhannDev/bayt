@@ -10,6 +10,8 @@ import { JWTService } from 'src/utils/jwt/jwt.service';
 import { CustomerModule } from 'src/customer/customer.module';
 import { PartnerModule } from 'src/partner/partner.module';
 import { ServiceModule } from 'src/service/service.module';
+import { Category } from 'src/category/schema/category.schema';
+import { CategoryModule } from 'src/category/category.module';
 
 @Module({
   imports: [
@@ -17,6 +19,7 @@ import { ServiceModule } from 'src/service/service.module';
     CustomerModule,
     PartnerModule,
     ServiceModule,
+    CategoryModule,
   ],
   providers: [AdminService, HashingService, JWTService],
   controllers: [AdminController],

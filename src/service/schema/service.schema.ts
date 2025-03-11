@@ -24,7 +24,7 @@ export class Service {
 
   @Prop({
     required: true,
-    enum: ['Review', 'Accepted', 'Rejected'],
+    enum: ['Review', 'Accepted', 'Rejected', 'Disabled'],
     default: 'Review',
   })
   status: string;
@@ -34,6 +34,9 @@ export class Service {
 
   @Prop({ default: false })
   isDeleted?: boolean;
+
+  @Prop({ default: false })
+  isDisabled?: boolean;
 
   @Prop({ type: Types.ObjectId, ref: 'Category' })
   category: Types.ObjectId;

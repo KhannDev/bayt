@@ -53,8 +53,15 @@ export class Partner {
   @Prop({ required: true, default: false })
   isDeleted: boolean;
 
-  @Prop({ required: true, default: false })
-  isVerified: boolean;
+  @Prop({
+    required: true,
+    enum: ['Review', 'Accepted', 'Rejected', 'Disabled'],
+    default: 'Review',
+  })
+  status: string;
+
+  @Prop({ type: [{ type: Types.ObjectId, ref: 'PartnerStatusTracker' }] })
+  statusTracker: Types.ObjectId[];
 
   @Prop({ required: true })
   currentAddress: string;

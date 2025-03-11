@@ -110,6 +110,11 @@ export class UpdatePartnerDto {
 
   @ApiProperty()
   @IsOptional()
+  @IsString()
+  status?: string;
+
+  @ApiProperty()
+  @IsOptional()
   @IsEmail()
   email?: string;
 

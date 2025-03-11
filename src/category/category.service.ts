@@ -34,6 +34,7 @@ export class CategoryService {
             path: 'subServiceIds',
           },
         })
+        .populate('approvedBy')
         .skip(skip)
         .limit(limit)
         .exec(),

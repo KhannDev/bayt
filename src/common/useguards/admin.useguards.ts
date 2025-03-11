@@ -53,7 +53,6 @@ export class AdminAuthGuard implements CanActivate {
 
       const adminInfo = await this.auth.findAdminWithEmail(admin.email);
 
-      console.log('Admin Info', adminInfo);
       if (!adminInfo)
         throw new HttpException('No Such Users', HttpStatus.BAD_REQUEST);
       // @ts-ignore

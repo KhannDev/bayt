@@ -51,6 +51,9 @@ export class Appointment {
   @Prop({ default: false })
   isDeleted?: boolean;
 
+  @Prop({ default: false })
+  isDisabled?: boolean;
+
   @Prop()
   bookingId?: number;
 }

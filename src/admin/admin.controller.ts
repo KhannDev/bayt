@@ -24,6 +24,8 @@ import { ServiceService } from 'src/service/service.service';
 import { UpdatePartnerDto } from 'src/partner/dto/partner.dto';
 import { CustomRequest } from 'src/common/interfaces/interface';
 import { UpdateServiceDto } from 'src/service/dto/service.dto';
+import { CategoryService } from 'src/category/category.service';
+import { CreateCategoryDto } from 'src/category/dto/category.dto';
 
 @ApiTags('Admin')
 @Controller('admin')
@@ -33,6 +35,7 @@ export class AdminController {
     private readonly CustomerService: CustomerService,
     private readonly PartnerService: PartnerService,
     private readonly ServiceService: ServiceService,
+    private readonly CategoryService: CategoryService,
   ) {}
 
   // @UseGuards(AdminAuthGuard)
@@ -100,65 +103,6 @@ export class AdminController {
   @UseGuards(AdminAuthGuard)
   @Get('bookings')
   @ApiOperation({ summary: 'Get all appointments' })
-  @ApiResponse({
-    status: 200,
-    description: 'Successfully fetched appointments',
-  })
-  @ApiQuery({
-    name: 'page',
-    required: false,
-    type: Number,
-    description: 'Page number for pagination',
-  })
-  @ApiQuery({
-    name: 'limit',
-    required: false,
-    type: Number,
-    description: 'Limit for pagination',
-  })
-  @ApiQuery({
-    name: 'partnerId',
-    required: false,
-    type: String,
-    description: 'Filter by partner ID',
-  })
-  @ApiQuery({
-    name: 'serviceId',
-    required: false,
-    type: String,
-    description: 'Filter by service ID',
-  })
-  @ApiQuery({
-    name: 'customerId',
-    required: false,
-    type: String,
-    description: 'Filter by customer ID',
-  })
-  @ApiQuery({
-    name: 'status',
-    required: false,
-    type: String,
-    description:
-      'Filter by appointment status (e.g., Pending, Confirmed, etc.)',
-  })
-  @ApiQuery({
-    name: 'startDate',
-    required: false,
-    type: Date,
-    description: 'Filter by start date for the appointment',
-  })
-  @ApiQuery({
-    name: 'endDate',
-    required: false,
-    type: Date,
-    description: 'Filter by end date for the appointment',
-  })
-  @ApiQuery({
-    name: 'category',
-    required: false,
-    type: String,
-    description: 'Filter by category',
-  })
   async findAllAppointments(
     @Query('page') page?: number,
     @Query('limit') limit?: number,
@@ -190,11 +134,22 @@ export class AdminController {
     @Req() req: CustomRequest,
     @Body() updatePartnerDto: UpdatePartnerDto,
   ) {
-    console.log(id);
-    return this.PartnerService.update(id, {
+    return this.PartnerService.StatusUpdate(id, {
       ...updatePartnerDto,
       approvedBy: req.admin.id,
       approvedDate: new Date(),
+    });
+  }
+
+  @UseGuards(AdminAuthGuard)
+  @Post('createCategory/')
+  async updateCategory(
+    @Req() req: CustomRequest,
+    @Body() createCategoryDto: CreateCategoryDto,
+  ) {
+    return this.CategoryService.create({
+      ...createCategoryDto,
+      approvedBy: req.admin.id,
     });
   }
 

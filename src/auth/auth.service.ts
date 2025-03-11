@@ -111,7 +111,7 @@ export class AuthService {
         'partner',
       );
 
-      if (partner.isVerified) {
+      if (partner.status === 'Accepted') {
         return token;
       } else {
         throw new HttpException(

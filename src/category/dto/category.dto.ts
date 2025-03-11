@@ -15,6 +15,10 @@ export class CreateCategoryDto {
   @ApiProperty()
   @IsBoolean()
   isActive: boolean; // Indicates if the category is active or not
+
+  approvedBy: string;
+
+  approvedDate: Date;
 }
 
 export class UpdateCategoryDto {
