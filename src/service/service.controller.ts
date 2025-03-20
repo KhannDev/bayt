@@ -65,13 +65,6 @@ export class ServiceController {
       String(response.partnerId),
     );
 
-    await sendPushNotification({
-      title: 'New booking',
-      body: 'New booking created ',
-      data: {},
-      tokens: [(await getPartner).expoToken],
-    });
-
     return response;
   }
 
@@ -134,16 +127,37 @@ export class ServiceController {
   async updateService(
     @Param('id') id: string,
     @Body() updateServiceDto: UpdateServiceDto,
+    @Req() req: CustomRequest,
   ) {
     return this.serviceService.updateService(id, updateServiceDto);
   }
 
-  @Patch('Appointment/:id')
-  async updateAppointment(
+  @UseGuards(CustomerAuthGuard)
+  @Patch('appointment/partner/:id')
+  async updatePartnerAppointment(
     @Param('id') id: string,
-    @Body() status: AppointmentStatusDto,
+    @Body() data: AppointmentStatusDto,
+    @Req() req: CustomRequest,
   ) {
-    return this.serviceService.updateAppointment(id, status.status);
+    return this.serviceService.updatePartnerAppointment(
+      req.partner._id,
+      id,
+      data.status,
+    );
+  }
+
+  @UseGuards(CustomerAuthGuard)
+  @Patch('appointment/customer/:id')
+  async updateCustomerAppointment(
+    @Param('id') id: string,
+    @Body() data: AppointmentStatusDto,
+    @Req() req: CustomRequest,
+  ) {
+    return this.serviceService.updateCustomerAppointment(
+      req.customer._id,
+      id,
+      data.status,
+    );
   }
 
   @Patch('serviceTimeSlot/:id')

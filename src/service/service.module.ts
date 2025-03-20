@@ -15,10 +15,20 @@ import {
   SubService,
   SubServiceSchema,
 } from 'src/sub-service/schema/sub-service.schema';
+import {
+  AppointmentStatusTracker,
+  AppointmentStatusTrackerSchema,
+} from './schema/appointmentStatusTracker.schema';
 
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: Service.name, schema: ServiceSchema }]),
+    MongooseModule.forFeature([
+      {
+        name: AppointmentStatusTracker.name,
+        schema: AppointmentStatusTrackerSchema,
+      },
+    ]),
     MongooseModule.forFeature([
       { name: TimeSlot.name, schema: TimeSlotSchema },
     ]),

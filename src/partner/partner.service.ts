@@ -100,112 +100,162 @@ export class PartnerService {
     }
   }
 
+  // async findAllPartners(
+  //   page: number,
+  //   limit: number,
+  // ): Promise<{ partners: Partner[]; total: number }> {
+  //   const skip = Number(page - 1) * Number(limit);
+  //   const limitNum = Number(limit);
+
+  //   const result = await this.partnerModel.aggregate([
+  //     // Lookup services
+  //     {
+  //       $lookup: {
+  //         from: 'services',
+  //         localField: '_id',
+  //         foreignField: 'partnerId',
+  //         as: 'services',
+  //       },
+  //     },
+  //     // Lookup partnerStatusTracker
+  //     {
+  //       $lookup: {
+  //         from: 'partnerstatustrackers',
+  //         localField: 'statusTracker',
+  //         foreignField: '_id',
+  //         as: 'partnerStatusTracker',
+  //       },
+  //     },
+  //     // Unwind partnerStatusTracker to process each item individually
+  //     {
+  //       $unwind: {
+  //         path: '$partnerStatusTracker',
+  //         preserveNullAndEmptyArrays: true, // Keep partners even if statusTracker is empty
+  //       },
+  //     },
+  //     // Lookup admin for UpdatedBy field in partnerStatusTracker
+  //     {
+  //       $lookup: {
+  //         from: 'admins', // Matches your admin collection name
+  //         localField: 'partnerStatusTracker.UpdatedBy',
+  //         foreignField: '_id',
+  //         as: 'partnerStatusTracker.updatedBy', // Store populated admin data here
+  //       },
+  //     },
+  //     // Unwind updatedBy to handle single admin object (since it's a single reference)
+  //     {
+  //       $unwind: {
+  //         path: '$partnerStatusTracker.updatedBy',
+  //         preserveNullAndEmptyArrays: true, // Keep if no admin is found
+  //       },
+  //     },
+  //     // Group back to reconstruct the partnerStatusTracker array
+  //     {
+  //       $group: {
+  //         _id: '$_id',
+  //         partnerDetails: { $first: '$$ROOT' },
+  //         services: { $first: '$services' },
+  //         partnerStatusTracker: {
+  //           $push: {
+  //             _id: '$partnerStatusTracker._id',
+  //             status: '$partnerStatusTracker.status',
+  //             UpdatedBy: '$partnerStatusTracker.updatedBy', // Populated admin object
+  //             createdAt: '$partnerStatusTracker.createdAt',
+  //           },
+  //         },
+  //       },
+  //     },
+  //     // Project to clean up the structure
+  //     {
+  //       $project: {
+  //         partnerDetails: 1,
+  //         services: {
+  //           $map: {
+  //             input: '$services',
+  //             as: 'service',
+  //             in: { name: '$$service.name' },
+  //           },
+  //         },
+  //         partnerStatusTracker: 1,
+  //       },
+  //     },
+  //     // Merge partnerDetails with other fields
+  //     {
+  //       $replaceRoot: {
+  //         newRoot: {
+  //           $mergeObjects: [
+  //             '$partnerDetails',
+  //             {
+  //               services: '$services',
+  //               partnerStatusTracker: '$partnerStatusTracker',
+  //             },
+  //           ],
+  //         },
+  //       },
+  //     },
+  //     // Facet for pagination
+  //     {
+  //       $facet: {
+  //         partners: [{ $skip: skip }, { $limit: limitNum }],
+  //         totalCount: [{ $count: 'total' }],
+  //       },
+  //     },
+  //   ]);
+
+  //   const partners = result[0]?.partners || [];
+  //   const total = result[0]?.totalCount[0]?.total || 0;
+
+  //   return { partners, total };
+  // }
+
   async findAllPartners(
     page: number,
     limit: number,
   ): Promise<{ partners: Partner[]; total: number }> {
-    const skip = Number(page - 1) * Number(limit);
-    const limitNum = Number(limit);
+    const skip = (page - 1) * limit;
 
-    const result = await this.partnerModel.aggregate([
-      // Lookup services
-      {
-        $lookup: {
-          from: 'services',
-          localField: '_id',
-          foreignField: 'partnerId',
-          as: 'services',
-        },
-      },
-      // Lookup partnerStatusTracker
-      {
-        $lookup: {
-          from: 'partnerstatustrackers',
-          localField: 'statusTracker',
-          foreignField: '_id',
-          as: 'partnerStatusTracker',
-        },
-      },
-      // Unwind partnerStatusTracker to process each item individually
-      {
-        $unwind: {
-          path: '$partnerStatusTracker',
-          preserveNullAndEmptyArrays: true, // Keep partners even if statusTracker is empty
-        },
-      },
-      // Lookup admin for UpdatedBy field in partnerStatusTracker
-      {
-        $lookup: {
-          from: 'admins', // Matches your admin collection name
-          localField: 'partnerStatusTracker.UpdatedBy',
-          foreignField: '_id',
-          as: 'partnerStatusTracker.updatedBy', // Store populated admin data here
-        },
-      },
-      // Unwind updatedBy to handle single admin object (since it's a single reference)
-      {
-        $unwind: {
-          path: '$partnerStatusTracker.updatedBy',
-          preserveNullAndEmptyArrays: true, // Keep if no admin is found
-        },
-      },
-      // Group back to reconstruct the partnerStatusTracker array
-      {
-        $group: {
-          _id: '$_id',
-          partnerDetails: { $first: '$$ROOT' },
-          services: { $first: '$services' },
-          partnerStatusTracker: {
-            $push: {
-              _id: '$partnerStatusTracker._id',
-              status: '$partnerStatusTracker.status',
-              UpdatedBy: '$partnerStatusTracker.updatedBy', // Populated admin object
-              createdAt: '$partnerStatusTracker.createdAt',
-            },
-          },
-        },
-      },
-      // Project to clean up the structure
-      {
-        $project: {
-          partnerDetails: 1,
-          services: {
-            $map: {
-              input: '$services',
-              as: 'service',
-              in: { name: '$$service.name' },
-            },
-          },
-          partnerStatusTracker: 1,
-        },
-      },
-      // Merge partnerDetails with other fields
-      {
-        $replaceRoot: {
-          newRoot: {
-            $mergeObjects: [
-              '$partnerDetails',
-              {
-                services: '$services',
-                partnerStatusTracker: '$partnerStatusTracker',
-              },
-            ],
-          },
-        },
-      },
-      // Facet for pagination
-      {
-        $facet: {
-          partners: [{ $skip: skip }, { $limit: limitNum }],
-          totalCount: [{ $count: 'total' }],
-        },
-      },
-    ]);
+    // Fetch partners without services
+    const partners = await this.partnerModel
+      .find()
+      .populate({
+        path: 'statusTracker',
+        model: 'PartnerStatusTracker',
+        populate: { path: 'UpdatedBy', model: 'Admin' },
+      })
+      .skip(skip)
+      .limit(limit)
+      .lean();
 
-    const partners = result[0]?.partners || [];
-    const total = result[0]?.totalCount[0]?.total || 0;
+    // Fetch services separately
+    const partnerIds = partners.map((p) => p._id);
+    const services = await this.serviceModel
+      .find({ partnerId: { $in: partnerIds } })
+      .populate('category', 'name')
+      .populate({
+        path: 'subServiceIds',
+        populate: {
+          path: 'subservice',
+          model: 'Allservices',
+        },
+      })
+      .lean();
 
-    return { partners, total };
+    // Attach services to partners manually
+    const partnerMap = new Map(
+      partners.map((p) => [p._id.toString(), { ...p, services: [] }]),
+    );
+
+    services.forEach((service) => {
+      const partner = partnerMap.get(service.partnerId.toString());
+      if (partner) {
+        partner.services.push({ service });
+      }
+    });
+
+    return {
+      partners: Array.from(partnerMap.values()),
+      total: await this.partnerModel.countDocuments(),
+    };
   }
 
   async findById(id: string): Promise<Partner> {

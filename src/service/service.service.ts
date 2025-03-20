@@ -20,6 +20,7 @@ import {
 import { TimeRange, TimeRangeDocument } from './schema/timeRange.schema';
 import { SubService } from 'src/sub-service/schema/sub-service.schema';
 import sendPushNotification from 'src/common/send-push-notification';
+import { AppointmentStatusTracker } from './schema/appointmentStatusTracker.schema';
 
 @Injectable()
 export class ServiceService {
@@ -28,6 +29,8 @@ export class ServiceService {
     private readonly serviceModel: Model<Service>,
     @InjectModel(TimeSlot.name)
     private readonly timeSlotModel: Model<TimeSlot>,
+    @InjectModel(AppointmentStatusTracker.name)
+    private readonly appointmentStatusTrackerModel: Model<AppointmentStatusTracker>,
     @InjectModel(TimeRange.name)
     private readonly timeRangeModel: Model<TimeRangeDocument>,
     @InjectModel(Appointment.name)
@@ -126,7 +129,10 @@ export class ServiceService {
     const [services, total] = await Promise.all([
       this.serviceModel
         .find()
-        .populate('subServiceIds')
+        .populate({
+          path: 'subServiceIds',
+          populate: { path: 'subservice', model: 'Allservices' },
+        })
         .populate('partnerId', 'name ')
         .populate('category', 'name ')
         .populate('approvedBy')
@@ -257,6 +263,14 @@ export class ServiceService {
         path: 'address',
         // Specify which fields to include from the address
       })
+      .populate({
+        path: 'statusTracker',
+        // Specify which fields to include from the sub-services
+        populate: {
+          path: 'updatedByPartner',
+          model: 'Partner',
+        },
+      })
       .lean() // Convert Mongoose documents to plain objects
       .exec();
 
@@ -292,8 +306,10 @@ export class ServiceService {
       .findById(new Types.ObjectId(id))
       .populate({
         path: 'subServiceIds',
+
         populate: {
           path: 'subservice', // This is the field inside subServiceIds that you want to populate
+          select: 'name createdAt',
         },
       })
       .populate('partnerId', 'name email') // Optional: Populating partnerId if needed
@@ -341,14 +357,56 @@ export class ServiceService {
     return service;
   }
 
-  async updateAppointment(id: string, status: string) {
-    const updatedService = await this.appointmentModel
-      .findByIdAndUpdate(id, { status: status }, { new: true })
+  async updatePartnerAppointment(userId: string, id: string, status: string) {
+    // Create a new AppointmentStatusTracker entry
+    const statusTrackerEntry = await this.appointmentStatusTrackerModel.create({
+      status: status,
+      updatedByPartner: userId, // Assign the userId to updatedByPartner
+    });
+
+    // Update the appointment with the new status and push the status tracker entry
+    const updatedAppointment = await this.appointmentModel
+      .findByIdAndUpdate(
+        id,
+        {
+          status: status,
+          $push: { statusTracker: statusTrackerEntry._id }, // Store tracker ID in the appointment
+        },
+        { new: true },
+      )
       .exec();
-    if (!updatedService) {
-      throw new NotFoundException(`Service with id ${id} not found`);
+
+    if (!updatedAppointment) {
+      throw new NotFoundException(`Appointment with id ${id} not found`);
     }
-    return updatedService;
+
+    return updatedAppointment;
+  }
+
+  async updateCustomerAppointment(userId: string, id: string, status: string) {
+    // Create a new AppointmentStatusTracker entry
+    const statusTrackerEntry = await this.appointmentStatusTrackerModel.create({
+      status: status,
+      updatedByCustomer: userId, // Assign the userId to updatedByPartner
+    });
+
+    // Update the appointment with the new status and push the status tracker entry
+    const updatedAppointment = await this.appointmentModel
+      .findByIdAndUpdate(
+        id,
+        {
+          status: status,
+          $push: { statusTracker: statusTrackerEntry._id }, // Store tracker ID in the appointment
+        },
+        { new: true },
+      )
+      .exec();
+
+    if (!updatedAppointment) {
+      throw new NotFoundException(`Appointment with id ${id} not found`);
+    }
+
+    return updatedAppointment;
   }
 
   // Delete service by id
@@ -557,71 +615,61 @@ export class ServiceService {
       if (endDate) query.bookedTime.$lte = endDate;
     }
 
-    const pipeline: any[] = [
-      { $match: query },
-      {
-        $lookup: {
-          from: 'services',
-          localField: 'serviceId',
-          foreignField: '_id',
-          as: 'service',
-        },
-      },
-      { $unwind: '$service' },
-      {
-        $lookup: {
-          from: 'Customer',
-          localField: 'customerId',
-          foreignField: '_id',
-          as: 'customer',
-        },
-      },
-      { $unwind: { path: '$customer', preserveNullAndEmptyArrays: true } },
-      {
-        $lookup: {
-          from: 'Partner',
-          localField: 'partnerId',
-          foreignField: '_id',
-          as: 'partner',
-        },
-      },
-      { $unwind: { path: '$partner', preserveNullAndEmptyArrays: true } },
-      {
-        $lookup: {
-          from: 'categories',
-          localField: 'service.category',
-          foreignField: '_id',
-          as: 'category',
-        },
-      },
-      { $unwind: { path: '$category', preserveNullAndEmptyArrays: true } },
-    ];
-
-    // If category is provided, filter the results by category
+    // If category is provided, filter the results by category within the serviceId
     if (category) {
-      pipeline.push({ $match: { 'service.category': category } });
+      query['serviceId.category'] = category; // This assumes that category is within serviceId
     }
 
     // Count total matching appointments (before pagination)
-    const totalPipeline = [
-      { $match: query },
-      {
-        $count: 'totalAppointments', // This counts the number of documents matching the query
-      },
-    ];
+    const total = await this.appointmentModel.countDocuments(query).exec();
 
-    // Execute the count pipeline
-    const totalCountResult = await this.appointmentModel
-      .aggregate(totalPipeline)
+    // Fetch the paginated appointments
+    const appointments = await this.appointmentModel
+      .find(query)
+      .skip(skip)
+      .limit(limitNumber)
+      .populate({
+        path: 'serviceId',
+        select: 'name description imageUrl',
+        populate: {
+          path: 'category',
+          model: 'Category',
+        },
+      })
+      .populate({
+        path: 'subServiceIds',
+        populate: {
+          path: 'subservice', // This is the field inside subServiceIds that you want to populate
+        },
+      })
+      .populate({
+        path: 'customerId',
+        select: 'name mobileNumber email',
+        model: 'Customer',
+      })
+      .populate({
+        path: 'partnerId',
+        select: 'name',
+        model: 'Partner',
+      })
+      .populate({
+        path: 'statusTracker',
+        model: 'AppointmentStatusTracker',
+        populate: [
+          {
+            path: 'updatedByPartner',
+            model: 'Partner',
+            select: 'name',
+          },
+          {
+            path: 'updatedByCustomer',
+            model: 'Customer',
+            select: 'name',
+          },
+        ],
+      })
+      .lean() // Convert Mongoose documents to plain objects
       .exec();
-    const total =
-      totalCountResult.length > 0 ? totalCountResult[0].totalAppointments : 0;
-
-    // Add pagination to the main pipeline
-    pipeline.push({ $skip: skip }, { $limit: limitNumber });
-
-    // Fetch the paginated results
-    const appointments = await this.appointmentModel.aggregate(pipeline).exec();
 
     return { bookings: appointments, total };
   }

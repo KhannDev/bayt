@@ -32,13 +32,16 @@ export class AdminRolesService {
   }
 
   async getAllRoles(): Promise<AdminRole[]> {
-    return await this.roleModel.find().populate('permissions').exec();
+    return await this.roleModel
+      .find()
+      .populate({ path: 'permissions', model: 'Permission' })
+      .exec();
   }
 
   async getRoleById(id: string): Promise<AdminRole> {
     const role = await this.roleModel
       .findById(id)
-      .populate('permissions')
+      .populate({ path: 'permissions', model: 'Permission' })
       .exec();
     if (!role) throw new NotFoundException('Role not found');
     return role;

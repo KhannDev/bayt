@@ -22,6 +22,9 @@ export class Appointment {
   @Prop({ required: true, type: Types.ObjectId, ref: 'Partner' })
   partnerId: Types.ObjectId;
 
+  @Prop({ type: [{ type: Types.ObjectId, ref: 'AppointmentStatusTracker' }] })
+  statusTracker: Types.ObjectId[];
+
   @Prop({
     required: true,
     enum: [
@@ -33,7 +36,8 @@ export class Appointment {
       'In-progress',
       'No-show',
       'Rejected',
-      'expired',
+      'Expired',
+      'Accepted',
     ],
     default: 'Pending',
   })
