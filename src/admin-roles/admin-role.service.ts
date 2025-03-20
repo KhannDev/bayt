@@ -32,10 +32,7 @@ export class AdminRolesService {
   }
 
   async getAllRoles(): Promise<AdminRole[]> {
-    return await this.roleModel
-      .find()
-      .populate({ path: 'permissions', model: 'Permission' })
-      .exec();
+    return await this.roleModel.find().populate({ path: 'permissions' }).exec();
   }
 
   async getRoleById(id: string): Promise<AdminRole> {

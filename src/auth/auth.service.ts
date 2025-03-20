@@ -68,6 +68,7 @@ export class AuthService {
         model: 'AdminRole',
         populate: {
           path: 'permissions',
+          model: 'Permission',
         },
       });
     if (!admin) {
