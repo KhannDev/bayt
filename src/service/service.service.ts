@@ -594,6 +594,7 @@ export class ServiceService {
     startDate?: Date,
     endDate?: Date,
     category?: string,
+    bookingId?: number,
   ): Promise<{ bookings: Appointment[]; total: number }> {
     console.log('Typesss', typeof page, typeof limit);
 
@@ -605,10 +606,12 @@ export class ServiceService {
     // Build the query object
     const query: any = {};
 
-    if (partnerId) query.partnerId = new Types.ObjectId(partnerId);
+    // if (partnerId) query.partnerId = new Types.ObjectId(partnerId);
+
     if (serviceId) query.serviceId = new Types.ObjectId(serviceId);
     if (customerId) query.customerId = new Types.ObjectId(customerId);
     if (status) query.status = status;
+    if (bookingId) query.bookingId = bookingId;
     if (startDate || endDate) {
       query.bookedTime = {};
       if (startDate) query.bookedTime.$gte = startDate;

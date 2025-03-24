@@ -116,6 +116,7 @@ export class AdminController {
     @Query('startDate') startDate?: Date,
     @Query('endDate') endDate?: Date,
     @Query('category') category?: string,
+    @Query('bookingId') bookingId?: number,
   ) {
     return this.ServiceService.findAllAppointments(
       page,
@@ -127,6 +128,7 @@ export class AdminController {
       startDate,
       endDate,
       category,
+      bookingId,
     );
   }
 
