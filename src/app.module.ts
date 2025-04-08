@@ -29,6 +29,8 @@ import { AllservicesModule } from './allservices/allservices.module';
 import { AdminRolesController } from './admin-roles/admin-role.controller';
 import { AdminRolesService } from './admin-roles/admin-role.service';
 import { AdminRolesModule } from './admin-roles/admin-role.module';
+import { FeedbackModule } from './feedback/feedback.module';
+import { AdsModule } from './ads/ads.module';
 
 @Module({
   imports: [
@@ -57,6 +59,8 @@ import { AdminRolesModule } from './admin-roles/admin-role.module';
     AdminModule,
     AllservicesModule,
     AdminRolesModule,
+    FeedbackModule,
+    AdsModule,
   ],
   controllers: [AppController],
   providers: [AppService, JWTService],

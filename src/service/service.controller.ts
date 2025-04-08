@@ -9,6 +9,10 @@ import {
   Query,
   UseGuards,
   Req,
+  BadRequestException,
+  NotFoundException,
+  ForbiddenException,
+  Request,
 } from '@nestjs/common';
 import { ServiceService } from './service.service';
 import { CustomRequest } from './../common/interfaces/interface';
@@ -26,6 +30,8 @@ import {
 } from './dto/appointment.dto';
 import sendPushNotification from 'src/common/send-push-notification';
 import { PartnerService } from 'src/partner/partner.service';
+import { CreateFeedbackDto } from '../feedback/dto/create-feedback.dto';
+import { Types } from 'mongoose';
 
 @ApiTags('services')
 @Controller('services')
@@ -108,11 +114,6 @@ export class ServiceController {
     return this.serviceService.getPartnerServices(req.partner._id);
   }
 
-  @Get(':id')
-  async getServiceById(@Param('id') id: string) {
-    return this.serviceService.getServiceById(id);
-  }
-
   @Get('/partner/timeSlots/:id')
   async getPartnerTimeslots(@Param('id') id: string) {
     return this.serviceService.getPartnerTimeSlots(id);
@@ -171,5 +172,99 @@ export class ServiceController {
   @Delete(':id')
   async deleteService(@Param('id') id: string) {
     return this.serviceService.deleteService(id);
+  }
+
+  @Post('appointment/:appointmentId/feedback')
+  @UseGuards(CustomerAuthGuard)
+  async createFeedbackForAppointment(
+    @Param('appointmentId') appointmentId: string,
+    @Body() createFeedbackDto: CreateFeedbackDto,
+    @Request() req,
+  ) {
+    if (!Types.ObjectId.isValid(appointmentId)) {
+      throw new BadRequestException('Invalid appointment ID format');
+    }
+
+    const appointment =
+      await this.serviceService.getAppointmentById(appointmentId);
+    if (!appointment) {
+      throw new NotFoundException('Appointment not found');
+    }
+
+    const feedback = await this.serviceService.createFeedbackForAppointment(
+      appointmentId,
+      createFeedbackDto,
+    );
+
+    // Mark the feedback as seen
+    await this.serviceService.markFeedbackAsSeen(appointmentId);
+
+    return feedback;
+  }
+
+  @UseGuards(CustomerAuthGuard)
+  @Post('appointment/:appointmentId/mark-feedback-seen')
+  async markFeedbackAsSeen(
+    @Param('appointmentId') appointmentId: string,
+    @Request() req,
+  ) {
+    console.log('Im here ', 'appointmentId', appointmentId);
+    if (!Types.ObjectId.isValid(appointmentId)) {
+      throw new BadRequestException('Invalid appointment ID format');
+    }
+
+    const appointment =
+      await this.serviceService.getAppointmentById(appointmentId);
+    if (!appointment) {
+      throw new NotFoundException('Appointment not found');
+    }
+    console.log(
+      appointment.customerId._id.toString(),
+      req.customer._id.toString(),
+    );
+
+    await this.serviceService.markFeedbackAsSeen(appointmentId);
+    return { message: 'Feedback marked as seen successfully' };
+  }
+
+  @UseGuards(CustomerAuthGuard)
+  @Get('completed-appointments-without-feedback')
+  async getCompletedAppointmentsWithoutFeedback(@Req() req: CustomRequest) {
+    console.log('Customer ID', req.customer._id);
+    return this.serviceService.getCompletedAppointmentsWithoutFeedback(
+      req.customer._id,
+    );
+  }
+
+  @UseGuards(CustomerAuthGuard)
+  @Get('appointment/:appointmentId/feedback')
+  async getAppointmentWithFeedback(
+    @Param('appointmentId') appointmentId: string,
+    @Req() req: CustomRequest,
+  ) {
+    if (!Types.ObjectId.isValid(appointmentId)) {
+      throw new BadRequestException('Invalid appointment ID format');
+    }
+    return this.serviceService.getAppointmentWithFeedback(appointmentId);
+  }
+
+  @Get(':id')
+  async getServiceById(@Param('id') id: string) {
+    if (!Types.ObjectId.isValid(id)) {
+      throw new BadRequestException('Invalid service ID format');
+    }
+    return this.serviceService.getServiceById(id);
+  }
+
+  @UseGuards(CustomerAuthGuard)
+  @Delete('appointment/:appointmentId/feedback')
+  async deleteFeedbackFromAppointment(
+    @Param('appointmentId') appointmentId: string,
+    @Req() req: CustomRequest,
+  ) {
+    if (!Types.ObjectId.isValid(appointmentId)) {
+      throw new BadRequestException('Invalid appointment ID format');
+    }
+    return this.serviceService.deleteFeedbackFromAppointment(appointmentId);
   }
 }

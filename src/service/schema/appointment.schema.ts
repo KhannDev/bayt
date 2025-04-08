@@ -43,7 +43,7 @@ export class Appointment {
   })
   status: string; // Status of the appointment
 
-  @Prop({ type: [{ type: String, ref: 'SubService' }], required: true })
+  @Prop({ type: [{ type: Types.ObjectId, ref: 'SubService' }], required: true })
   subServiceIds?: string[]; // Array of subservice IDs
 
   @Prop({ required: true })
@@ -51,6 +51,9 @@ export class Appointment {
 
   @Prop({ type: Types.ObjectId, ref: 'Address' })
   address: Types.ObjectId; // Array of subservice IDs
+
+  @Prop({ type: Types.ObjectId, ref: 'Feedback' })
+  feedbackId?: Types.ObjectId; // Reference to the feedback
 
   @Prop({ default: false })
   isDeleted?: boolean;
@@ -60,6 +63,9 @@ export class Appointment {
 
   @Prop()
   bookingId?: number;
+
+  @Prop({ default: false })
+  feedbackSeen: boolean;
 }
 
 export const AppointmentSchema = SchemaFactory.createForClass(Appointment);

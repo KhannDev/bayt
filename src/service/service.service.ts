@@ -21,6 +21,11 @@ import { TimeRange, TimeRangeDocument } from './schema/timeRange.schema';
 import { SubService } from 'src/sub-service/schema/sub-service.schema';
 import sendPushNotification from 'src/common/send-push-notification';
 import { AppointmentStatusTracker } from './schema/appointmentStatusTracker.schema';
+import {
+  Feedback,
+  FeedbackDocument,
+} from '../feedback/schemas/feedback.schema';
+import { CreateFeedbackDto } from '../feedback/dto/create-feedback.dto';
 
 @Injectable()
 export class ServiceService {
@@ -39,6 +44,7 @@ export class ServiceService {
     private readonly subServiceModel: Model<SubService>,
     private subServiceService: SubServiceService,
     private categoryService: CategoryService,
+    @InjectModel(Feedback.name) private feedbackModel: Model<FeedbackDocument>,
   ) {}
 
   // Create a new service
@@ -303,16 +309,15 @@ export class ServiceService {
   // Get service by id
   async getServiceById(id: string): Promise<Service> {
     const service = await this.serviceModel
-      .findById(new Types.ObjectId(id))
+      .findById(id)
       .populate({
         path: 'subServiceIds',
-
         populate: {
-          path: 'subservice', // This is the field inside subServiceIds that you want to populate
+          path: 'subservice',
           select: 'name createdAt',
         },
       })
-      .populate('partnerId', 'name email') // Optional: Populating partnerId if needed
+      .populate('partnerId', 'name email')
       .populate('category', 'name');
 
     if (!service) {
@@ -806,5 +811,104 @@ export class ServiceService {
     ]);
 
     return { bookings, total };
+  }
+
+  async createFeedbackForAppointment(
+    appointmentId: string,
+    createFeedbackDto: CreateFeedbackDto,
+  ): Promise<Appointment> {
+    // Create the feedback
+    const feedback = await this.feedbackModel.create({
+      ...createFeedbackDto,
+      appointmentId,
+    });
+
+    // Update the appointment with the feedback ID
+    const updatedAppointment = await this.appointmentModel
+      .findByIdAndUpdate(
+        appointmentId,
+        { $set: { feedbackId: feedback._id } },
+        { new: true },
+      )
+      .exec();
+
+    if (!updatedAppointment) {
+      throw new NotFoundException(
+        `Appointment with ID ${appointmentId} not found`,
+      );
+    }
+
+    return updatedAppointment;
+  }
+
+  async getAppointmentWithFeedback(
+    appointmentId: string,
+  ): Promise<Appointment> {
+    const appointment = await this.appointmentModel
+      .findById(appointmentId)
+      .populate('feedbackId')
+      .exec();
+
+    if (!appointment) {
+      throw new NotFoundException(
+        `Appointment with ID ${appointmentId} not found`,
+      );
+    }
+
+    return appointment;
+  }
+
+  async deleteFeedbackFromAppointment(
+    appointmentId: string,
+  ): Promise<Appointment> {
+    const appointment = await this.appointmentModel.findById(appointmentId);
+
+    if (!appointment) {
+      throw new NotFoundException(
+        `Appointment with ID ${appointmentId} not found`,
+      );
+    }
+
+    if (appointment.feedbackId) {
+      // Soft delete the feedback
+      await this.feedbackModel.findByIdAndUpdate(
+        appointment.feedbackId,
+        { $set: { isActive: false } },
+        { new: true },
+      );
+    }
+
+    // Remove feedback reference from appointment
+    const updatedAppointment = await this.appointmentModel
+      .findByIdAndUpdate(
+        appointmentId,
+        { $unset: { feedbackId: 1 } },
+        { new: true },
+      )
+      .exec();
+
+    return updatedAppointment;
+  }
+
+  async getCompletedAppointmentsWithoutFeedback(customerId: string) {
+    return this.appointmentModel
+      .find({
+        customerId,
+        status: 'Completed',
+        feedbackId: { $exists: false },
+        feedbackSeen: false,
+        isDeleted: false,
+      })
+      .populate('serviceId', 'name description imageUrl')
+      .populate('partnerId', 'name')
+      .sort({ bookedTime: -1 });
+  }
+
+  async markFeedbackAsSeen(appointmentId: string): Promise<void> {
+    await this.appointmentModel.findByIdAndUpdate(
+      new Types.ObjectId(appointmentId),
+      { $set: { feedbackSeen: true } },
+      { new: true },
+    );
   }
 }

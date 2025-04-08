@@ -11,7 +11,7 @@ export class Category {
   @Prop({ required: true })
   imageUrl: string;
 
-  @Prop({ required: true, default: true })
+  @Prop({ default: true })
   isActive: boolean; // Changed 'onLive' to 'isLive' for clarity
 
   @Prop({ type: [{ type: String, ref: 'Service' }] }) // Referencing serviceIds

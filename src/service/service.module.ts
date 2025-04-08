@@ -19,6 +19,7 @@ import {
   AppointmentStatusTracker,
   AppointmentStatusTrackerSchema,
 } from './schema/appointmentStatusTracker.schema';
+import { Feedback, FeedbackSchema } from '../feedback/schemas/feedback.schema';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import {
     ]),
     MongooseModule.forFeature([
       { name: Appointment.name, schema: AppointmentSchema },
+      { name: Feedback.name, schema: FeedbackSchema },
     ]),
     MongooseModule.forFeature([
       { name: SubService.name, schema: SubServiceSchema },

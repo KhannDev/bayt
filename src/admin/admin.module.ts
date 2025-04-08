@@ -26,5 +26,6 @@ import { AllservicesModule } from 'src/allservices/allservices.module';
   ],
   providers: [AdminService, HashingService, JWTService],
   controllers: [AdminController],
+  exports: [AdminService],
 })
 export class AdminModule {}
