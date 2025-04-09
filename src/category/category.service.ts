@@ -12,6 +12,7 @@ export class CategoryService {
 
   // Create a new category
   async create(createCategoryDto: CreateCategoryDto): Promise<Category> {
+    console.log(createCategoryDto);
     const category = new this.categoryModel(createCategoryDto);
     return await category.save();
   }
@@ -34,7 +35,7 @@ export class CategoryService {
             path: 'subServiceIds',
           },
         })
-        .populate('approvedBy')
+        .populate('createdBy')
         .skip(skip)
         .limit(limit)
         .exec(),

@@ -16,9 +16,7 @@ export class CreateCategoryDto {
   @IsBoolean()
   isActive: boolean; // Indicates if the category is active or not
 
-  approvedBy: string;
-
-  approvedDate: Date;
+  createdBy: string;
 }
 
 export class UpdateCategoryDto {

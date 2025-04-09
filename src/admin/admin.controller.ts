@@ -152,9 +152,10 @@ export class AdminController {
     @Req() req: CustomRequest,
     @Body() createCategoryDto: CreateCategoryDto,
   ) {
+    console.log('ADMIN REQUESTTTTTTT', req.admin._id);
     return this.CategoryService.create({
       ...createCategoryDto,
-      approvedBy: req.admin.id,
+      createdBy: req.admin._id,
     });
   }
 
@@ -181,7 +182,7 @@ export class AdminController {
   ) {
     return this.AllService.create({
       ...createSubserviceDto,
-      createdBy: req.admin.id,
+      createdBy: req.admin._id,
     });
   }
 

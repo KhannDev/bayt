@@ -18,10 +18,7 @@ export class Category {
   serviceIds: string[]; // Array of service IDs linked to this category
 
   @Prop({ type: Types.ObjectId, ref: 'Admin' })
-  approvedBy?: Types.ObjectId;
-
-  @Prop()
-  approvedDate?: Date;
+  createdBy?: Types.ObjectId;
 }
 
 export const CategorySchema = SchemaFactory.createForClass(Category);
