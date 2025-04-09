@@ -69,6 +69,7 @@ export class AuthService {
         populate: {
           path: 'permissions',
           // model: 'Permission',
+          // select: 'name isAllowed',
         },
       });
     if (!admin) {
