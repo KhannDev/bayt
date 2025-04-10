@@ -222,6 +222,7 @@ export class ServiceService {
       .populate('partnerId') // Populating partner details if needed
       .populate({
         path: 'subServiceIds',
+        model: 'SubService',
         // Specify which fields to include from the sub-services
         populate: {
           path: 'subservice',
@@ -259,6 +260,7 @@ export class ServiceService {
       })
       .populate({
         path: 'subServiceIds',
+        model: 'SubService',
         // Specify which fields to include from the sub-services
         populate: {
           path: 'subservice',
